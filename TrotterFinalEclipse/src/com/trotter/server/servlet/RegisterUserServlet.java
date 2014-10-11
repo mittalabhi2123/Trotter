@@ -17,7 +17,7 @@ import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.Utility;
 
-@WebServlet("/RegisterUserServlet")
+@WebServlet("/RegisterUser")
 public class RegisterUserServlet extends HttpServlet {
 
     public RegisterUserServlet() {
@@ -26,6 +26,7 @@ public class RegisterUserServlet extends HttpServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
 			if (Utility.isNullEmpty(request.getParameter("data"))) {
+				System.out.println("Empty request found...:(");
 				throw new ServletException("Invalid/No request received"); 
 			}
 			JSONObject requestObj = new JSONObject(request.getParameter("data"));
@@ -34,7 +35,10 @@ public class RegisterUserServlet extends HttpServlet {
 			DBCollection userTblCol = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			BasicDBObject doc = new BasicDBObject();
 			for (MongoDBStructure.USER_TABLE_COLS col : MongoDBStructure.USER_TABLE_COLS.values()) {
-				doc.append(col.name(), requestObj.get(col.name()));
+				if (requestObj.has(col.name()))
+					doc.append(col.name(), requestObj.get(col.name()));
+				else
+					doc.append(col.name(), "");
 			}
 			userTblCol.insert(doc);
 		} catch (Exception e) {
