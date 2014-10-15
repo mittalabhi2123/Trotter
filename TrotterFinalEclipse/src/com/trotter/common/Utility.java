@@ -9,6 +9,10 @@ public class Utility {
 
 	public static Properties systVariables = new Properties();
 	
+	public static enum MongoQueryHandles {
+		$set;
+	}
+
 	public static void initSystVariables() {
         String filePath = System.getenv(Const.SYST_VAR_PROP.SYST_VAR_NAME);
         if(isNullEmpty(filePath))
