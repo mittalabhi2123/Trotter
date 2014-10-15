@@ -27,7 +27,8 @@ public class UpdateTravelBioServlet extends HttpServlet {
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
-			if (Utility.isNullEmpty(request.getParameter("data"))) {
+			if (Utility.isNullEmpty(request.getParameter("data"))
+					|| Utility.isNullEmpty(request.getParameter("id"))) {
 				System.out.println("Empty request found...:(");
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid/No request received");
 				return;
