@@ -27,10 +27,13 @@ public class UpdateTravelBioServlet extends HttpServlet {
 					|| Utility.isNullEmpty(request.getParameter("id"))) {
 				System.out.println("Empty request found...:(");
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid/No request received");
+				System.out.println("Return invalid request params.");
 				return;
 			}
 			String travelBio = request.getParameter("data");
 			String fbId = request.getParameter("id");
+			System.out.println("Travel Bio:" + travelBio);
+			System.out.println("accessToken:" + fbId);
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTblCol = mongoDB.getCollection(MongoDBStructure.USER_TBL);

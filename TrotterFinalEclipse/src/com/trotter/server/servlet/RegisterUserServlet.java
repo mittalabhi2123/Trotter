@@ -30,6 +30,7 @@ public class RegisterUserServlet extends HttpServlet {
 				System.out.println("Empty request found...:(");
 				throw new ServletException("Invalid/No request received"); 
 			}
+			System.out.println(request.getParameter("data"));
 			JSONObject requestObj = new JSONObject(request.getParameter("data"));
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
