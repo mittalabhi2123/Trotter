@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
 import com.trotter.common.ManageConnection;
@@ -36,6 +37,17 @@ public class RegisterUserServlet extends HttpServlet {
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
+			
+			BasicDBObject inQuery = new BasicDBObject();
+			inQuery.put(MongoDBStructure.USER_TABLE_COLS.fb_id.name(), requestObj.getString(MongoDBStructure.USER_TABLE_COLS.fb_id.name()));
+		    DBCursor cursor = userTbl.find(inQuery);
+		    if (cursor.count() > 0) {
+		    	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		    	response.setContentType("application/text");
+			    response.getWriter().write("User already registered!!!");
+			    return;
+		    }
+		    
 			BasicDBObject doc = new BasicDBObject();
 			for (MongoDBStructure.USER_TABLE_COLS col : MongoDBStructure.USER_TABLE_COLS.values()) {
 				if (requestObj.has(col.name()))
@@ -46,6 +58,7 @@ public class RegisterUserServlet extends HttpServlet {
 			WriteResult wr = userTbl.insert(doc);
 			response.setHeader(MongoDBStructure.USER_TABLE_COLS._id.name(),
 					(String) wr.getField(MongoDBStructure.USER_TABLE_COLS._id.name()));
+	    	response.setStatus(HttpServletResponse.SC_OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
