@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.mongodb.BasicDBObject;
@@ -42,9 +43,14 @@ public class RegisterUserServlet extends HttpServlet {
 			inQuery.put(MongoDBStructure.USER_TABLE_COLS.fb_id.name(), requestObj.getString(MongoDBStructure.USER_TABLE_COLS.fb_id.name()));
 		    DBCursor cursor = userTbl.find(inQuery);
 		    if (cursor.count() > 0) {
+		    	DBObject dbObject = cursor.next();
 		    	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-		    	response.setContentType("application/text");
-			    response.getWriter().write("User already registered!!!");
+		    	response.setContentType("application/json");
+		    	JSONObject responseObj = new JSONObject();
+		    	responseObj.put("error", "User already registered!!!");
+		    	responseObj.put("id", dbObject.get(MongoDBStructure.USER_TABLE_COLS._id.name()));
+			    response.getWriter().write(responseObj.toString());
+			    System.out.println("ID::" + dbObject.get(MongoDBStructure.USER_TABLE_COLS._id.name()));
 			    return;
 		    }
 		    
@@ -52,15 +58,24 @@ public class RegisterUserServlet extends HttpServlet {
 			for (MongoDBStructure.USER_TABLE_COLS col : MongoDBStructure.USER_TABLE_COLS.values()) {
 				if (requestObj.has(col.name()))
 					doc.append(col.name(), requestObj.get(col.name()));
-				else
-					doc.append(col.name(), "");
 			}
 			WriteResult wr = userTbl.insert(doc);
-			response.setHeader(MongoDBStructure.USER_TABLE_COLS._id.name(),
-					(String) wr.getField(MongoDBStructure.USER_TABLE_COLS._id.name()));
+			JSONObject responseObj = new JSONObject();
+	    	responseObj.put("id", (String) wr.getField(MongoDBStructure.USER_TABLE_COLS._id.name()));
+		    System.out.println("ID::" + responseObj.getString("id"));
+		    response.getWriter().write(responseObj.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+			JSONObject responseObj = new JSONObject();
+	    	try {
+				responseObj.put("error", e.getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+		    response.getWriter().write(responseObj.toString());
+	    	response.setStatus(HttpServletResponse.SC_OK);
+	    	return;
 		}
 	}
 
