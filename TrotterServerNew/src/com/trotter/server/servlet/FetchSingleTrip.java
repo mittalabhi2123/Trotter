@@ -26,11 +26,12 @@ import com.mongodb.DBObject;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.Utility;
+import com.trotter.server.servlet.functions.UserFunctions;
 
-@WebServlet("/fetchTripList")
-public class FetchTripList extends HttpServlet {
+@WebServlet("/fetchTrip")
+public class FetchSingleTrip extends HttpServlet {
 
-    public FetchTripList() {
+    public FetchSingleTrip() {
     }
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -45,56 +46,50 @@ public class FetchTripList extends HttpServlet {
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			DBCollection tripTbl = mongoDB.getCollection(MongoDBStructure.TRIP_TBL);
-			BasicDBObject inQuery = new BasicDBObject();
-			inQuery.put(MongoDBStructure.USER_TABLE_COLS._id.name(), new ObjectId(id));
-		    DBCursor cursor = userTbl.find(inQuery);
+			BasicDBObject tripInQuery = new BasicDBObject();
+			tripInQuery.put(MongoDBStructure.TRIP_TABLE_COLS._id.name(), new ObjectId(id));
+		    DBCursor cursor = tripTbl.find(tripInQuery);
 		    if (cursor.count() <= 0) {
 		    	response.setContentType("application/text");
-			    response.getWriter().write("User doesn't exists!!!");
+			    response.getWriter().write("Trip doesn't exists!!!");
 		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		    	return;
 		    }
 	    	DBObject dbObject = cursor.next();
-	    	BasicDBList mineTrip = (BasicDBList) dbObject.get(MongoDBStructure.USER_TABLE_COLS.own_trips.name());
 	    	
-	    	if (mineTrip == null || mineTrip.size() == 0) {
-	    		response.setContentType("application/text");
-			    response.getWriter().write("No trip exists!!!");
-		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+	    	List<JSONObject> userList = new ArrayList<>();
+	    	JSONObject jsonTripObj = new JSONObject();
+	    	for (MongoDBStructure.TRIP_TABLE_COLS colName : MongoDBStructure.TRIP_TABLE_COLS.values()) {
+	    		if (dbObject.containsField(colName.name()))
+	    			jsonTripObj.put(colName.name(), dbObject.get(colName.name()));
+	    	}
+	    	if (jsonTripObj.getBoolean(MongoDBStructure.TRIP_TABLE_COLS.is_individual.name())) {
+	    		// return response, if its individual trip
+	    		response.setContentType("application/json");
+			    response.getWriter().write(jsonTripObj.toString());
+		    	response.setStatus(HttpServletResponse.SC_OK);
 		    	return;
 	    	}
-	    	
-	    	List<JSONObject> tripList = new ArrayList<>();
-	    	JSONObject jsonTripObj = null;
-	    	for (int i = 0 ; i < mineTrip.size() ; i++) {
-	    		if (mineTrip.get(i) == null || mineTrip.get(i).toString().equals(""))
-	    			continue;
-	    		ObjectId tripId = ((ObjectId)mineTrip.get(i));
-	    		BasicDBObject inTripQuery = new BasicDBObject();
-	    		inTripQuery.put(MongoDBStructure.TRIP_TABLE_COLS._id.name(), tripId);
-	    		DBCursor tripCursor = tripTbl.find(inTripQuery);
-	    		if (tripCursor.count() > 0) {
-	    			jsonTripObj = new JSONObject();
-	    			createTripJsonObj(tripCursor.next(), jsonTripObj);
-	    			jsonTripObj.put("own", true);
-	    			tripList.add(jsonTripObj);
-	    		}
+	    	// fetch group member list
+	    	BasicDBList groupMembers = (BasicDBList) dbObject.get(MongoDBStructure.TRIP_TABLE_COLS.group_members.name());
+	    	if (groupMembers == null || groupMembers.size() == 0) {
+	    		response.setContentType("application/json");
+			    response.getWriter().write(jsonTripObj.toString());
+		    	response.setStatus(HttpServletResponse.SC_OK);
+		    	return;
 	    	}
-	    	Collections.sort(tripList, new Comparator<JSONObject>() {
-
-				@Override
-				public int compare(JSONObject o1, JSONObject o2) {
-					try {
-						return o1.getInt(MongoDBStructure.TRIP_TABLE_COLS.start_date.name())
-								- o2.getInt(MongoDBStructure.TRIP_TABLE_COLS.start_date.name());
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} 
-					return 0;
-				}
-			});
-	    	JSONArray jsonTripList = new JSONArray(tripList);
+	    	//Add user objects for group members
+	    	UserFunctions userFunctions = new UserFunctions();
+	    	for (int i = 0 ; i < groupMembers.size() ; i++) {
+	    		if (groupMembers.get(i) == null || groupMembers.get(i).toString().equals(""))
+	    			continue;
+	    		ObjectId userId = ((ObjectId)groupMembers.get(i));
+	    		JSONObject userObj = userFunctions.fetchUserById(mongoDB, userId);
+	    		userList.add(userObj);
+	    	}
+	    	jsonTripObj.put(MongoDBStructure.TRIP_TABLE_COLS.group_members.name(), userList);
+    		
+	    	JSONArray jsonTripList = new JSONArray(jsonTripObj);
 	    	response.setContentType("application/json");
 		    response.getWriter().write(jsonTripList.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);

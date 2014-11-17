@@ -58,7 +58,11 @@ public class FetchFriendsServlet extends HttpServlet {
 		    response.setContentType("application/json");
 		    response.getWriter().write(responseArr.toString());
 		} catch (Exception e) {
+			response.setContentType("application/text");
+		    response.getWriter().write(e.getMessage());
+	    	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			e.printStackTrace();
+	    	return;
 		}
 	}
 

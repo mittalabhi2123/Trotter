@@ -16,7 +16,8 @@ public class MongoDBStructure {
 	}
 	
 	public static enum TRIP_TABLE_COLS {
-		_id, user_id, start_date, end_date, duration, city, state, country, mission,
+		_id, user_id, start_date, end_date, duration, origin_city, origin_state, origin_country,
+		dest_city, dest_state, dest_country, mission, transport_mode,
 		is_individual, group_name, group_icon, group_members, trip_matches;
 	}
 }

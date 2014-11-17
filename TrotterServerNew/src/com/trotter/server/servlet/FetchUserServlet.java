@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.bson.types.ObjectId;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.mongodb.BasicDBObject;
@@ -20,6 +21,7 @@ import com.mongodb.WriteResult;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.Utility;
+import com.trotter.server.servlet.functions.UserFunctions;
 
 @WebServlet("/fetchUser")
 public class FetchUserServlet extends HttpServlet {
@@ -37,18 +39,8 @@ public class FetchUserServlet extends HttpServlet {
 			String id = request.getParameter("id");
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
-			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
-			BasicDBObject inQuery = new BasicDBObject();
-			inQuery.put(MongoDBStructure.USER_TABLE_COLS._id.name(), new ObjectId(id));
-		    DBCursor cursor = userTbl.find(inQuery);
-		    JSONObject userObj = new JSONObject();
-		    if (cursor.count() > 0) {
-		    	DBObject dbObject = cursor.next();
-		    	for (MongoDBStructure.USER_TABLE_COLS colName : MongoDBStructure.USER_TABLE_COLS.values()) {
-		    		if (dbObject.containsField(colName.name())) {
-		    			userObj.put(colName.name(), dbObject.get(colName.name()));
-		    		}
-		    	}
+			JSONObject userObj = new UserFunctions().fetchUserById(mongoDB, new ObjectId(id));
+		    if (userObj != null) {
 		    	response.setContentType("application/json");
 			    response.getWriter().write(userObj.toString());
 		    	response.setStatus(HttpServletResponse.SC_OK);
@@ -58,9 +50,14 @@ public class FetchUserServlet extends HttpServlet {
 		    response.getWriter().write("User doesn't exists!!!");
 	    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		} catch (Exception e) {
+			response.setContentType("application/text");
+		    response.getWriter().write(e.getMessage());
+	    	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			e.printStackTrace();
+	    	return;
 		}
 	}
 
+	
 
 }

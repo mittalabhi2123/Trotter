@@ -24,6 +24,7 @@ import com.mongodb.WriteResult;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.Utility;
+import com.trotter.server.servlet.functions.UserFunctions;
 
 @WebServlet("/createTrip")
 public class CreateTripServlet extends HttpServlet {
@@ -39,6 +40,12 @@ public class CreateTripServlet extends HttpServlet {
 			}
 			System.out.println(request.getParameter("data"));
 			JSONObject requestObj = new JSONObject(request.getParameter("data"));
+			if (requestObj.has(MongoDBStructure.TRIP_TABLE_COLS.user_id.name())) {
+				response.setContentType("application/text");
+			    response.getWriter().write("User id is not specified for the trip");
+		    	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		    	return;
+			}
 			long duration = requestObj.getLong(MongoDBStructure.TRIP_TABLE_COLS.end_date.name())
 					- requestObj.getLong(MongoDBStructure.TRIP_TABLE_COLS.start_date.name());
 			requestObj.put(MongoDBStructure.TRIP_TABLE_COLS.duration.name(), duration);
@@ -49,9 +56,16 @@ public class CreateTripServlet extends HttpServlet {
 			String[] missionArr = requestObj.has(MongoDBStructure.TRIP_TABLE_COLS.mission.name())
 					? requestObj.getString(MongoDBStructure.TRIP_TABLE_COLS.mission.name()).split(",") : null;
 			List<String> missionList = missionArr != null ? Arrays.asList(missionArr) : new ArrayList<String>();
-			String[] groupMembers = requestObj.has(MongoDBStructure.TRIP_TABLE_COLS.group_members.name())
+			String[] groupMembersFbIds = requestObj.has(MongoDBStructure.TRIP_TABLE_COLS.group_members.name())
 					? requestObj.getString(MongoDBStructure.TRIP_TABLE_COLS.group_members.name()).split(",") : null;
-			List<String> groupMembersList = groupMembers != null ? new ArrayList<String>(Arrays.asList(groupMembers)) : new ArrayList<String>();
+			JSONArray groupUserArray = new UserFunctions().fetchUserByFbIdList(mongoDB, groupMembersFbIds);
+			
+			List<String> groupMembersList = new ArrayList<>();
+			if (groupUserArray != null) {
+				for(int i = 0 ; i < groupUserArray.length() ; i++) {
+					groupMembersList.add(((JSONObject)groupUserArray.get(i)).getString(MongoDBStructure.USER_TABLE_COLS._id.name()));
+				}
+			}
 			BasicDBObject doc = new BasicDBObject();
 			for (MongoDBStructure.TRIP_TABLE_COLS col : MongoDBStructure.TRIP_TABLE_COLS.values()) {
 				if (MongoDBStructure.TRIP_TABLE_COLS.mission.name().equals(col.name()))
@@ -101,7 +115,11 @@ public class CreateTripServlet extends HttpServlet {
 			}
 			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (Exception e) {
+			response.setContentType("application/text");
+		    response.getWriter().write(e.getMessage());
+	    	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			e.printStackTrace();
+	    	return;
 		}
 	}
 

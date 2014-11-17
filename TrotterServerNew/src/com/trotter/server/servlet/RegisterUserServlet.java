@@ -61,7 +61,7 @@ public class RegisterUserServlet extends HttpServlet {
 			}
 			WriteResult wr = userTbl.insert(doc);
 			JSONObject responseObj = new JSONObject();
-	    	responseObj.put("id", (String) wr.getField(MongoDBStructure.USER_TABLE_COLS._id.name()));
+	    	responseObj.put("id", doc.get(MongoDBStructure.USER_TABLE_COLS._id.name()));
 		    System.out.println("ID::" + responseObj.getString("id"));
 		    response.getWriter().write(responseObj.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);
