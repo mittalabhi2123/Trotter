@@ -10,7 +10,7 @@ public class Utility {
 	public static Properties systVariables = new Properties();
 	
 	public static enum MongoQueryHandles {
-		$set, $push, $in;
+		$set, $push, $in, $gte;
 	}
 
 	public static void initSystVariables() {

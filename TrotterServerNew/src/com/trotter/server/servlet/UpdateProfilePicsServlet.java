@@ -17,7 +17,7 @@ import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.Utility;
 
-@WebServlet("/updateProfilePics")
+@WebServlet("/updateProfileData")
 public class UpdateProfilePicsServlet extends HttpServlet {
 
     public UpdateProfilePicsServlet() {
@@ -25,14 +25,22 @@ public class UpdateProfilePicsServlet extends HttpServlet {
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
-			if (Utility.isNullEmpty(request.getParameter("data"))
+			if (Utility.isNullEmpty(request.getParameter("pics"))
 					|| Utility.isNullEmpty(request.getParameter("id"))) {
 				System.out.println("Empty request found...:(");
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid/No request received");
 				return;
 			}
-			String picUrls = request.getParameter("data");
+			String picUrls = request.getParameter("pics");
+			String travelBio = request.getParameter("bio");
 			String fbId = request.getParameter("id");
+			String city = request.getParameter("city");
+			String state = request.getParameter("state");
+			String country = request.getParameter("country");
+			travelBio = Utility.isNullEmpty(travelBio) ? "" : travelBio;
+			city = Utility.isNullEmpty(city) ? "" : city;
+			state = Utility.isNullEmpty(state) ? "" : state;
+			country = Utility.isNullEmpty(country) ? "" : country;
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTblCol = mongoDB.getCollection(MongoDBStructure.USER_TBL);
@@ -42,8 +50,13 @@ public class UpdateProfilePicsServlet extends HttpServlet {
 			for (String picUrl : picUrls.split(","))
 				picUrlList.add(new BasicDBObject("pic" + (count++), picUrl));
 			BasicDBObject setObj = new BasicDBObject().append(Utility.MongoQueryHandles.$set.name(), 
-					new BasicDBObject().append(MongoDBStructure.USER_TABLE_COLS.pictures.name(), picUrlList));
+					new BasicDBObject().append(MongoDBStructure.USER_TABLE_COLS.pictures.name(), picUrlList)
+					.append(MongoDBStructure.USER_TABLE_COLS.travel_bio.name(), travelBio)
+					.append(MongoDBStructure.USER_TABLE_COLS.home_city.name(), city)
+					.append(MongoDBStructure.USER_TABLE_COLS.home_state.name(), state)
+					.append(MongoDBStructure.USER_TABLE_COLS.home_country.name(), country));
 			userTblCol.update(condDoc, setObj);
+			
 			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (Exception e) {
 			e.printStackTrace();

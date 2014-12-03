@@ -83,13 +83,14 @@ public class FetchSingleTrip extends HttpServlet {
 	    	for (int i = 0 ; i < groupMembers.size() ; i++) {
 	    		if (groupMembers.get(i) == null || groupMembers.get(i).toString().equals(""))
 	    			continue;
-	    		ObjectId userId = ((ObjectId)groupMembers.get(i));
+	    		ObjectId userId = new ObjectId(((String)groupMembers.get(i)));
 	    		JSONObject userObj = userFunctions.fetchUserById(mongoDB, userId);
 	    		userList.add(userObj);
 	    	}
 	    	jsonTripObj.put(MongoDBStructure.TRIP_TABLE_COLS.group_members.name(), userList);
     		
-	    	JSONArray jsonTripList = new JSONArray(jsonTripObj);
+	    	JSONArray jsonTripList = new JSONArray();
+	    	jsonTripList.put(jsonTripObj);
 	    	response.setContentType("application/json");
 		    response.getWriter().write(jsonTripList.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);

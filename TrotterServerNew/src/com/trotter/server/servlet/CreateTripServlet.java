@@ -40,7 +40,7 @@ public class CreateTripServlet extends HttpServlet {
 			}
 			System.out.println(request.getParameter("data"));
 			JSONObject requestObj = new JSONObject(request.getParameter("data"));
-			if (requestObj.has(MongoDBStructure.TRIP_TABLE_COLS.user_id.name())) {
+			if (!requestObj.has(MongoDBStructure.TRIP_TABLE_COLS.user_id.name())) {
 				response.setContentType("application/text");
 			    response.getWriter().write("User id is not specified for the trip");
 		    	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -75,10 +75,21 @@ public class CreateTripServlet extends HttpServlet {
 				else if (requestObj.has(col.name()))
 					doc.append(col.name(), requestObj.get(col.name()));
 			}
-			WriteResult wr = tripTbl.insert(doc);
+			if (!requestObj.has(MongoDBStructure.TRIP_TABLE_COLS._id.name())
+					&& Utility.isNullEmpty(requestObj.getString(MongoDBStructure.TRIP_TABLE_COLS._id.name())))
+				tripTbl.insert(doc); // insert the trip
+			else {			 
+				// update the trip
+				BasicDBObject searchQuery = new BasicDBObject().append(MongoDBStructure.TRIP_TABLE_COLS._id.name(),
+						new ObjectId((String)requestObj.get(MongoDBStructure.TRIP_TABLE_COLS._id.name())));
+			 
+				tripTbl.update(searchQuery, doc);
+			}
 			
 			@SuppressWarnings("deprecation")
-			ObjectId tripId = (ObjectId) doc.get(MongoDBStructure.TRIP_TABLE_COLS._id.name());
+			ObjectId tripId = null;
+			Object idObj = doc.get(MongoDBStructure.TRIP_TABLE_COLS._id.name());
+			tripId = idObj instanceof ObjectId ? (ObjectId) idObj : new ObjectId((String) idObj);
 			
 			//Updating userTbl with this tripId
 			String tripUserId = requestObj.getString(MongoDBStructure.TRIP_TABLE_COLS.user_id.name());
@@ -109,8 +120,11 @@ public class CreateTripServlet extends HttpServlet {
 			    	System.out.println(myTrips);
 			    	cmd = new BasicDBObject().append(Utility.MongoQueryHandles.$set.name(),
 							new BasicDBObject(MongoDBStructure.USER_TABLE_COLS.own_trips.name(), myTrips));
-					wr = userTbl.update(new BasicDBObject().append(MongoDBStructure.USER_TABLE_COLS._id.name(), new ObjectId(groupMember)), cmd);
-					System.out.println(wr.getField(MongoDBStructure.USER_TABLE_COLS._id.name()));
+					userTbl.update(new BasicDBObject().append(MongoDBStructure.USER_TABLE_COLS._id.name(), new ObjectId(groupMember)), cmd);
+					JSONObject responseObj = new JSONObject();
+			    	responseObj.put("id", tripId);
+				    System.out.println("ID::" + responseObj.getString("id"));
+				    response.getWriter().write(responseObj.toString());
 			    }
 			}
 			response.setStatus(HttpServletResponse.SC_OK);
