@@ -1,6 +1,4 @@
 package com.trotter.server.servlet.functions;
-import java.util.List;
-
 import org.bson.types.ObjectId;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,11 +19,14 @@ public class UserFunctions {
 		DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 		BasicDBObject inQuery = new BasicDBObject();
 		inQuery.put(MongoDBStructure.USER_TABLE_COLS._id.name(), id);
-	    DBCursor cursor = userTbl.find(inQuery);
-	    if (cursor.count() <= 0)
+		DBObject dbObject = userTbl.findOne(inQuery);
+	    return createUserJson(dbObject);
+	}
+	
+	public JSONObject createUserJson(DBObject dbObject) throws JSONException {
+	    if (dbObject == null)
 	    	return null;
 	    JSONObject userObj = new JSONObject();
-	    DBObject dbObject = cursor.next();
     	for (MongoDBStructure.USER_TABLE_COLS colName : MongoDBStructure.USER_TABLE_COLS.values()) {
     		if (dbObject.containsField(colName.name())) {
     			userObj.put(colName.name(), dbObject.get(colName.name()));
@@ -45,16 +46,8 @@ public class UserFunctions {
 				Utility.MongoQueryHandles.$in.name(), fbIdList));
 	    DBCursor cursor = userTbl.find(inQuery, fields);
 	    JSONArray responseArr = new JSONArray();
-	    JSONObject dataObj = null;
 	    while (cursor.hasNext()) {
-			DBObject dbObj = cursor.next();
-			dataObj = new JSONObject();
-			for (MongoDBStructure.USER_TABLE_COLS colName : MongoDBStructure.USER_TABLE_COLS.values()) {
-	    		if (dbObj.containsField(colName.name())) {
-	    			dataObj.put(colName.name(), dbObj.get(colName.name()));
-	    		}
-	    	}
-			responseArr.put(dataObj);
+			responseArr.put(createUserJson(cursor.next()));
 		}
 	    return responseArr; 
 	}

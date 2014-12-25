@@ -20,7 +20,6 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.WriteResult;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.Utility;
@@ -40,6 +39,8 @@ public class CreateTripServlet extends HttpServlet {
 			}
 			System.out.println(request.getParameter("data"));
 			JSONObject requestObj = new JSONObject(request.getParameter("data"));
+			boolean isNewTrip = !requestObj.has(MongoDBStructure.TRIP_TABLE_COLS._id.name())
+					|| Utility.isNullEmpty(requestObj.getString(MongoDBStructure.TRIP_TABLE_COLS._id.name()));
 			if (!requestObj.has(MongoDBStructure.TRIP_TABLE_COLS.user_id.name())) {
 				response.setContentType("application/text");
 			    response.getWriter().write("User id is not specified for the trip");
@@ -66,23 +67,28 @@ public class CreateTripServlet extends HttpServlet {
 					groupMembersList.add(((JSONObject)groupUserArray.get(i)).getString(MongoDBStructure.USER_TABLE_COLS._id.name()));
 				}
 			}
-			BasicDBObject doc = new BasicDBObject();
+			DBObject doc = new BasicDBObject();
 			for (MongoDBStructure.TRIP_TABLE_COLS col : MongoDBStructure.TRIP_TABLE_COLS.values()) {
 				if (MongoDBStructure.TRIP_TABLE_COLS.mission.name().equals(col.name()))
-					doc.append(col.name(), missionList);
+					doc.put(col.name(), missionList);
 				else if (MongoDBStructure.TRIP_TABLE_COLS.group_members.name().equals(col.name()))
-					doc.append(col.name(), groupMembersList);
+					doc.put(col.name(), groupMembersList);
+				else if (MongoDBStructure.TRIP_TABLE_COLS._id.name().equals(col.name())) {
+					if (requestObj.has(MongoDBStructure.TRIP_TABLE_COLS._id.name()))
+						doc.put(col.name(), new ObjectId(requestObj.getString(col.name())));
+				}
 				else if (requestObj.has(col.name()))
-					doc.append(col.name(), requestObj.get(col.name()));
+					doc.put(col.name(), requestObj.get(col.name()));
 			}
-			if (!requestObj.has(MongoDBStructure.TRIP_TABLE_COLS._id.name())
-					&& Utility.isNullEmpty(requestObj.getString(MongoDBStructure.TRIP_TABLE_COLS._id.name())))
+			if (isNewTrip)
 				tripTbl.insert(doc); // insert the trip
 			else {			 
 				// update the trip
-				BasicDBObject searchQuery = new BasicDBObject().append(MongoDBStructure.TRIP_TABLE_COLS._id.name(),
+				DBObject searchQuery = new BasicDBObject();
+				searchQuery.put(MongoDBStructure.TRIP_TABLE_COLS._id.name(),
 						new ObjectId((String)requestObj.get(MongoDBStructure.TRIP_TABLE_COLS._id.name())));
-			 
+				DBObject tripDb = tripTbl.findOne(searchQuery);
+				System.out.println(doc);
 				tripTbl.update(searchQuery, doc);
 			}
 			
@@ -116,7 +122,8 @@ public class CreateTripServlet extends HttpServlet {
 			    	} else {
 			    		myTrips = new ArrayList<>();
 			    	}
-			    	myTrips.add(tripId);
+			    	if (!myTrips.contains(tripId))
+			    		myTrips.add(tripId);
 			    	System.out.println(myTrips);
 			    	cmd = new BasicDBObject().append(Utility.MongoQueryHandles.$set.name(),
 							new BasicDBObject(MongoDBStructure.USER_TABLE_COLS.own_trips.name(), myTrips));

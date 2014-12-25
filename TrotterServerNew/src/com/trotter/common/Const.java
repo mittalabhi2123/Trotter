@@ -10,5 +10,9 @@ public class Const {
         public static final String CONN_URL = "CONN_URL";//"jdbc:postgresql://localhost:5432/Saurabh"
         public static final String DB_USER_NAME = "DB_USER_NAME";//"postgres"
         public static final String DB_PASSWORD = "DB_PASSWORD";//"abhishek"
-    }    
+    } 
+    
+    public static enum SearchGroup{
+    	individual, group, all;
+    }
 }

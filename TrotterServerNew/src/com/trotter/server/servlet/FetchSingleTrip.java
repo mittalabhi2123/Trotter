@@ -89,10 +89,8 @@ public class FetchSingleTrip extends HttpServlet {
 	    	}
 	    	jsonTripObj.put(MongoDBStructure.TRIP_TABLE_COLS.group_members.name(), userList);
     		
-	    	JSONArray jsonTripList = new JSONArray();
-	    	jsonTripList.put(jsonTripObj);
 	    	response.setContentType("application/json");
-		    response.getWriter().write(jsonTripList.toString());
+		    response.getWriter().write(jsonTripObj.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);
 		    return;
 		} catch (Exception e) {

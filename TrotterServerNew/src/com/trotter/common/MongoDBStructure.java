@@ -19,7 +19,7 @@ public class MongoDBStructure {
 	public static enum TRIP_TABLE_COLS {
 		_id, user_id, start_date, end_date, duration, origin_city, origin_state, origin_country,
 		dest_city, dest_state, dest_country, mission, transport_mode,
-		is_individual, group_name, group_icon, group_members, trip_matches, event_id, event;
+		is_individual, group_name, group_icon, group_members, trip_matches, event_id, event, trips_selected, trips_rejected;
 	}
 	
 	public static enum EVENTS_COLS {

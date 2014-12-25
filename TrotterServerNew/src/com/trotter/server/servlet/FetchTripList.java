@@ -26,6 +26,7 @@ import com.mongodb.DBObject;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.Utility;
+import com.trotter.server.servlet.functions.TripFunctions;
 
 @WebServlet("/fetchTripList")
 public class FetchTripList extends HttpServlet {
@@ -34,6 +35,7 @@ public class FetchTripList extends HttpServlet {
     }
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		TripFunctions tripFunc = new TripFunctions();
 		try {
 			if (Utility.isNullEmpty(request.getParameter("id"))) {
 				System.out.println("Empty request found...:(");
@@ -63,19 +65,18 @@ public class FetchTripList extends HttpServlet {
 		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		    	return;
 	    	}
-	    	
 	    	List<JSONObject> tripList = new ArrayList<>();
 	    	JSONObject jsonTripObj = null;
+	    	BasicDBObject inTripQuery = null;
 	    	for (int i = 0 ; i < mineTrip.size() ; i++) {
 	    		if (mineTrip.get(i) == null || mineTrip.get(i).toString().equals(""))
 	    			continue;
 	    		ObjectId tripId = ((ObjectId)mineTrip.get(i));
-	    		BasicDBObject inTripQuery = new BasicDBObject();
+	    		inTripQuery = new BasicDBObject();
 	    		inTripQuery.put(MongoDBStructure.TRIP_TABLE_COLS._id.name(), tripId);
-	    		DBCursor tripCursor = tripTbl.find(inTripQuery);
-	    		if (tripCursor.count() > 0) {
-	    			jsonTripObj = new JSONObject();
-	    			createTripJsonObj(tripCursor.next(), jsonTripObj);
+	    		DBObject tripObj = tripTbl.findOne(inTripQuery);
+	    		if (tripObj != null) {
+	    			jsonTripObj = tripFunc.createTripJsonObj(tripObj);
 	    			jsonTripObj.put("own", true);
 	    			tripList.add(jsonTripObj);
 	    		}
@@ -105,14 +106,6 @@ public class FetchTripList extends HttpServlet {
 	    	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			e.printStackTrace();
 	    	return;
-		}
-	}
-
-	private void createTripJsonObj(DBObject tripDbObj, JSONObject jsonTripObj) throws JSONException {
-		for (MongoDBStructure.TRIP_TABLE_COLS tripColName : MongoDBStructure.TRIP_TABLE_COLS.values()) {
-			if (tripDbObj.containsField(tripColName.name())) {
-				jsonTripObj.put(tripColName.name(), tripDbObj.get(tripColName.name()));
-			}
 		}
 	}
 
