@@ -9,6 +9,7 @@ public class MongoDBStructure {
 	//Tables Names
 	public static final String TRIP_TBL = "trip_tbl";
 	public static final String USER_TBL = "user_tbl";
+	public static final String REJECT_TBL = "reject_tbl";
 	public static final String EVENTS_TBL = "event_tbl";
 	
 	public static enum USER_TABLE_COLS {
@@ -24,5 +25,9 @@ public class MongoDBStructure {
 	
 	public static enum EVENTS_COLS {
 		_id, name, icon, country, state, city, start_datetime, end_datetime, type;
+	}
+	
+	public static enum REJECT_TABLE_COLS {
+		_id, trip_id, result_id, result_type;
 	}
 }

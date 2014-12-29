@@ -97,10 +97,11 @@ public class TripSearchResults extends HttpServlet {
 		    DBCursor tripTblLst = tripTbl.find(inQuery);
 		    JSONArray cotravellerJsonArr = new JSONArray();
 		    TripFunctions tripFunc = new TripFunctions();
+		    UserFunctions userFunc = new UserFunctions();
 		    while(tripTblLst.hasNext()) {
-		    	cotravellerJsonArr.put(tripFunc.createTripJsonObj(tripTblLst.next()));
+		    	cotravellerJsonArr.put(tripFunc.createTripJsonObj(tripTblLst.next(), userFunc, mongoDB));
 		    }
-		    JSONArray localJsonArr = getLocalCompany(tripDbObject, userTbl);
+		    JSONArray localJsonArr = getLocalCompany(tripDbObject, userTbl, userFunc);
 		    JSONObject jsonObject = new JSONObject();
 		    jsonObject.put("local", localJsonArr);
 		    jsonObject.put("traveller", cotravellerJsonArr);
@@ -118,26 +119,17 @@ public class TripSearchResults extends HttpServlet {
 		}
 	}
 
-	private JSONArray getLocalCompany(DBObject tripDbObject, DBCollection userTbl) throws JSONException {
+	private JSONArray getLocalCompany(DBObject tripDbObject, DBCollection userTbl, UserFunctions userFunc) throws JSONException {
 		JSONArray localJsonArr = new JSONArray();
 		BasicDBObject inQuery = new BasicDBObject();
 	    inQuery.put(USER_TABLE_COLS.home_city.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_city.name()));
 	    inQuery.put(USER_TABLE_COLS.home_state.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_state.name()));
 	    inQuery.put(USER_TABLE_COLS.home_country.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_country.name()));
 	    DBCursor userTblLst = userTbl.find(inQuery);
-	    UserFunctions userFunc = new UserFunctions();
 	    while(userTblLst.hasNext()) {
 	    	localJsonArr.put(userFunc.createUserJson(userTblLst.next()));
 	    }
 		return localJsonArr;
-	}
-
-	private void createTripJsonObj(DBObject tripDbObj, JSONObject jsonTripObj) throws JSONException {
-		for (MongoDBStructure.TRIP_TABLE_COLS tripColName : MongoDBStructure.TRIP_TABLE_COLS.values()) {
-			if (tripDbObj.containsField(tripColName.name())) {
-				jsonTripObj.put(tripColName.name(), tripDbObj.get(tripColName.name()));
-			}
-		}
 	}
 
 

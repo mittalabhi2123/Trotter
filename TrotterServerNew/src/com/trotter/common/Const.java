@@ -15,4 +15,12 @@ public class Const {
     public static enum SearchGroup{
     	individual, group, all;
     }
+    
+    public static enum ResultType{
+    	user,trip;
+    }
+    
+    public static enum rejectRequestParam{
+    	tripId, resultId, resultType;
+    }
 }

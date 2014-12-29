@@ -17,74 +17,60 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
+import com.trotter.common.MongoDBStructure.TRIP_TABLE_COLS;
+import com.trotter.common.MongoDBStructure.USER_TABLE_COLS;
 import com.trotter.common.Utility;
 import com.trotter.server.servlet.functions.TripFunctions;
 import com.trotter.server.servlet.functions.UserFunctions;
 
-@WebServlet("/fetchTripList")
-public class FetchTripList extends HttpServlet {
+@WebServlet("/searchTravellersToMyCity")
+public class SearchTravellersToMyCityResults extends HttpServlet {
 
-    public FetchTripList() {
+    public SearchTravellersToMyCityResults() {
     }
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		TripFunctions tripFunc = new TripFunctions();
-		UserFunctions userFunc = new UserFunctions();
 		try {
 			if (Utility.isNullEmpty(request.getParameter("id"))) {
 				System.out.println("Empty request found...:(");
-				throw new ServletException("Invalid/No request received"); 
+				response.setContentType("application/text");
+			    response.getWriter().write("Invalid/No request received");
+		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+		    	return;
 			}
 			System.out.println(request.getParameter("id"));
 			String id = request.getParameter("id");
 			//TODO validations
+			UserFunctions userFunc = new UserFunctions();
 			DB mongoDB = ManageConnection.getDBConnection();
+			JSONObject userJsonObj = userFunc.fetchUserById(mongoDB, new ObjectId(id));
 			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			DBCollection tripTbl = mongoDB.getCollection(MongoDBStructure.TRIP_TBL);
 			BasicDBObject inQuery = new BasicDBObject();
-			inQuery.put(MongoDBStructure.USER_TABLE_COLS._id.name(), new ObjectId(id));
-		    DBCursor cursor = userTbl.find(inQuery);
-		    if (cursor.count() <= 0) {
+		    if (userJsonObj == null) {
 		    	response.setContentType("application/text");
-			    response.getWriter().write("User doesn't exists!!!");
+			    response.getWriter().write("Invalid user id in request");
 		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		    	return;
 		    }
-	    	DBObject dbObject = cursor.next();
-	    	BasicDBList mineTrip = (BasicDBList) dbObject.get(MongoDBStructure.USER_TABLE_COLS.own_trips.name());
-	    	
-	    	if (mineTrip == null || mineTrip.size() == 0) {
-	    		response.setContentType("application/text");
-			    response.getWriter().write("No trip exists!!!");
-		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-		    	return;
-	    	}
-	    	List<JSONObject> tripList = new ArrayList<>();
-	    	JSONObject jsonTripObj = null;
-	    	BasicDBObject inTripQuery = null;
-	    	
-	    	for (int i = 0 ; i < mineTrip.size() ; i++) {
-	    		if (mineTrip.get(i) == null || mineTrip.get(i).toString().equals(""))
-	    			continue;
-	    		ObjectId tripId = ((ObjectId)mineTrip.get(i));
-	    		inTripQuery = new BasicDBObject();
-	    		inTripQuery.put(MongoDBStructure.TRIP_TABLE_COLS._id.name(), tripId);
-	    		DBObject tripObj = tripTbl.findOne(inTripQuery);
-	    		if (tripObj != null) {
-	    			jsonTripObj = tripFunc.createTripJsonObj(tripObj, userFunc, mongoDB);
-	    			jsonTripObj.put("own", true);
-	    			tripList.add(jsonTripObj);
-	    		}
-	    	}
-	    	Collections.sort(tripList, new Comparator<JSONObject>() {
+			inQuery = new BasicDBObject();
+		    inQuery.put(TRIP_TABLE_COLS.origin_city.name(), userJsonObj.getString(USER_TABLE_COLS.home_city.name()));
+		    inQuery.put(TRIP_TABLE_COLS.origin_state.name(), userJsonObj.getString(USER_TABLE_COLS.home_state.name()));
+		    inQuery.put(TRIP_TABLE_COLS.origin_country.name(), userJsonObj.getString(USER_TABLE_COLS.home_country.name()));
+		    inQuery.put(TRIP_TABLE_COLS.start_date.name(), new BasicDBObject("$gt", (System.currentTimeMillis())));
+		    DBCursor tripTblLst = tripTbl.find(inQuery);
+		    List<JSONObject> cotravellerList = new ArrayList<>();
+		    TripFunctions tripFunc = new TripFunctions();
+		    while(tripTblLst.hasNext()) {
+		    	cotravellerList.add(tripFunc.createTripJsonObj(tripTblLst.next(), userFunc, mongoDB));
+		    }
+		    Collections.sort(cotravellerList, new Comparator<JSONObject>() {
 
 				@Override
 				public int compare(JSONObject o1, JSONObject o2) {
@@ -92,15 +78,14 @@ public class FetchTripList extends HttpServlet {
 						return o1.getInt(MongoDBStructure.TRIP_TABLE_COLS.start_date.name())
 								- o2.getInt(MongoDBStructure.TRIP_TABLE_COLS.start_date.name());
 					} catch (JSONException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} 
 					return 0;
 				}
 			});
-	    	JSONArray jsonTripList = new JSONArray(tripList);
+		    // TODO match mission, rejected and selected trips
 	    	response.setContentType("application/json");
-		    response.getWriter().write(jsonTripList.toString());
+		    response.getWriter().write(new JSONArray(cotravellerList).toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);
 		    return;
 		} catch (Exception e) {
@@ -111,6 +96,4 @@ public class FetchTripList extends HttpServlet {
 	    	return;
 		}
 	}
-
-
 }
