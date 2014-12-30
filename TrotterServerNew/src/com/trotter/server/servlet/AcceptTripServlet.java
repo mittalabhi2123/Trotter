@@ -10,20 +10,24 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.bson.types.ObjectId;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 import com.trotter.common.Const.ResultType;
 import com.trotter.common.Const.TripResponse;
 import com.trotter.common.Const.rejectRequestParam;
 import com.trotter.common.ManageConnection;
+import com.trotter.common.MongoDBStructure;
 import com.trotter.common.MongoDBStructure.TRIP_RESPONSE_TABLE_COLS;
 import com.trotter.common.Utility;
 
-@WebServlet("/rejectTrip")
-public class RejectTripServlet extends HttpServlet {
+@WebServlet("/acceptTrip")
+public class AcceptTripServlet extends HttpServlet {
 
-    public RejectTripServlet() {
+    public AcceptTripServlet() {
     }
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -41,28 +45,36 @@ public class RejectTripServlet extends HttpServlet {
 				throw new ServletException("Empty resultType request found...:("); 
 			}
 			if (Utility.isNullEmpty(request.getParameter(rejectRequestParam.outwardTrip.name()))) {
-				System.out.println("Empty tripType request found...:(");
-				throw new ServletException("Empty tripType request found...:("); 
+				System.out.println("Empty outwardTrip request found...:(");
+				throw new ServletException("Empty outwardTrip request found...:("); 
 			}
 			String tripId = request.getParameter(rejectRequestParam.tripId.name());
 			String resultId = request.getParameter(rejectRequestParam.resultId.name());
 			String resultType = request.getParameter(rejectRequestParam.resultType.name());
-			// defines whether traveler rejects a co-traveler/local, or local rejects a visitor
+			// defines whether traveler accepts a co-traveler/local, or local accepts a visitor
 			String outwardTrip = request.getParameter(rejectRequestParam.outwardTrip.name());
 			System.out.println(tripId);
 			System.out.println(resultId);
 			System.out.println(resultType);
 			System.out.println(outwardTrip);
 			DB mongoDB = ManageConnection.getDBConnection();
-			DBCollection rejectTbl = mongoDB.getCollection(TRIP_RESPONSE_TBL);
+			DBCollection responseTbl = mongoDB.getCollection(TRIP_RESPONSE_TBL);
 			BasicDBObject doc = new BasicDBObject();
 			doc.append(TRIP_RESPONSE_TABLE_COLS.trip_id.name(), tripId);
 			doc.append(TRIP_RESPONSE_TABLE_COLS.result_id.name(), resultId);
 			doc.append(TRIP_RESPONSE_TABLE_COLS.result_type.name(), resultType);
 			doc.append(TRIP_RESPONSE_TABLE_COLS.outward_trip.name(), Boolean.parseBoolean(outwardTrip));
-			doc.append(TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.reject);
-			rejectTbl.insert(doc);
+			doc.append(TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.accept);
+			responseTbl.insert(doc);
 			response.setStatus(HttpServletResponse.SC_OK);
+			BasicDBObject searchQuery = new BasicDBObject();
+			searchQuery.append(MongoDBStructure.TRIP_RESPONSE_TABLE_COLS.trip_id.name(), new ObjectId(resultId))
+					.append(MongoDBStructure.TRIP_RESPONSE_TABLE_COLS.result_id.name(), tripId)
+					.append(MongoDBStructure.TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.accept.name());
+			DBObject tripDb = responseTbl.findOne(searchQuery);
+			if (tripDb != null) {
+				response.getWriter().write("It's a match!!!");
+			}
 		} catch (Exception e) {
 			response.setContentType("application/text");
 		    response.getWriter().write(e.getMessage());

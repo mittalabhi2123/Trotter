@@ -18,7 +18,7 @@ public class TripFunctions {
 				jsonTripObj.put(tripColName.name(), tripDbObj.get(tripColName.name()));
 			}
 		}
-		jsonTripObj.put(MongoDBStructure.USER_TBL, userFunc.fetchUserById(mongoDB, new ObjectId(tripObj.getString(TRIP_TABLE_COLS.user_id.name()))));
+		jsonTripObj.put(MongoDBStructure.USER_TBL, userFunc.fetchUserById(mongoDB, new ObjectId(jsonTripObj.getString(TRIP_TABLE_COLS.user_id.name()))));
 		return jsonTripObj;
 	}
 }

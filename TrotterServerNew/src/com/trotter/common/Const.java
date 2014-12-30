@@ -20,7 +20,11 @@ public class Const {
     	user,trip;
     }
     
+    public static enum TripResponse{
+    	reject, accept;
+    }
+    
     public static enum rejectRequestParam{
-    	tripId, resultId, resultType;
+    	tripId, resultId, resultType, outwardTrip;
     }
 }
