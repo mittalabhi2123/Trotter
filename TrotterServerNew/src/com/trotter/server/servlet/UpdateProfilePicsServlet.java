@@ -17,7 +17,7 @@ import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.Utility;
 
-@WebServlet("/updateProfileData")
+@WebServlet("/updateProfilePics")
 public class UpdateProfilePicsServlet extends HttpServlet {
 
     public UpdateProfilePicsServlet() {

@@ -64,7 +64,7 @@ public class AcceptTripServlet extends HttpServlet {
 			doc.append(TRIP_RESPONSE_TABLE_COLS.result_id.name(), resultId);
 			doc.append(TRIP_RESPONSE_TABLE_COLS.result_type.name(), resultType);
 			doc.append(TRIP_RESPONSE_TABLE_COLS.outward_trip.name(), Boolean.parseBoolean(outwardTrip));
-			doc.append(TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.accept);
+			doc.append(TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.accept.name());
 			responseTbl.insert(doc);
 			response.setStatus(HttpServletResponse.SC_OK);
 			BasicDBObject searchQuery = new BasicDBObject();

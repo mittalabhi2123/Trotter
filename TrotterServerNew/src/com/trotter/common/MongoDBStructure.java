@@ -11,6 +11,7 @@ public class MongoDBStructure {
 	public static final String USER_TBL = "user_tbl";
 	public static final String TRIP_RESPONSE_TBL = "trip_response_tbl";
 	public static final String EVENTS_TBL = "event_tbl";
+	public static final String SOCIAL_TBL = "social_tbl";
 	
 	public static enum USER_TABLE_COLS {
 		_id, fb_id, fb_access_token, email, registration_date, first_name, last_name, dob, auth_token,
@@ -29,5 +30,17 @@ public class MongoDBStructure {
 	
 	public static enum TRIP_RESPONSE_TABLE_COLS {
 		_id, trip_id, result_id, result_type, outward_trip, response;
+	}
+	
+	public static enum SOCIAL_TABLE_COLS {
+		_id, user_id, caption, pic, mission, city, state, country;
+	}
+	
+	public static enum USER_SOCIAL_TABLE_COLS {
+		_id, social_id;
+	}
+	
+	public static enum MISSION_SOCIAL_TABLE_COLS {
+		_id, social_id;
 	}
 }
