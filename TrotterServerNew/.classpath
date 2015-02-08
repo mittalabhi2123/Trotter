@@ -15,5 +15,11 @@
 	<classpathentry kind="lib" path="lib/mongo-java-driver-2.12.3.jar"/>
 	<classpathentry kind="lib" path="lib/servlet-api-3.0.20100224.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/smack-core-4.0.6-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/smack-core-4.0.6-sources.jar"/>
+	<classpathentry kind="lib" path="lib/smack-core-4.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/smack-tcp-4.0.6-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/smack-tcp-4.0.6-sources.jar"/>
+	<classpathentry kind="lib" path="lib/smack-tcp-4.0.6.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

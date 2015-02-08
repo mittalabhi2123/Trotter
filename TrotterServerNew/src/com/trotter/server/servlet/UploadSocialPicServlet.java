@@ -46,6 +46,7 @@ public class UploadSocialPicServlet extends HttpServlet {
 			String city = request.getParameter("city");
 			String state = request.getParameter("state");
 			String country = request.getParameter("country");
+			String eventId = request.getParameter("event");
 			
 			caption = Utility.isNullEmpty(caption) ? "" : caption;
 			city = Utility.isNullEmpty(city) ? "" : city;
@@ -59,14 +60,15 @@ public class UploadSocialPicServlet extends HttpServlet {
 			BasicDBObject socialDoc = new BasicDBObject(SOCIAL_TABLE_COLS.user_id.name(), userId)
 				.append(SOCIAL_TABLE_COLS.caption.name(), caption).append(SOCIAL_TABLE_COLS.city.name(), city)
 				.append(SOCIAL_TABLE_COLS.state.name(), state).append(SOCIAL_TABLE_COLS.country.name(), country)
-				.append(SOCIAL_TABLE_COLS.mission.name(), missionList).append(SOCIAL_TABLE_COLS.pic.name(), picUrlList);
+				.append(SOCIAL_TABLE_COLS.mission.name(), missionList).append(SOCIAL_TABLE_COLS.pic.name(), picUrlList)
+				.append(SOCIAL_TABLE_COLS.upload_date.name(), System.currentTimeMillis()).append(SOCIAL_TABLE_COLS.event.name(), eventId);
 			socialTblCol.insert(socialDoc);
 			DBCollection userSocialTbl = mongoDB.getCollection(userId + "_" + MongoDBStructure.SOCIAL_TBL);
-			BasicDBObject userSocialDoc = new BasicDBObject(USER_SOCIAL_TABLE_COLS.social_id.name(), socialDoc.get(SOCIAL_TABLE_COLS._id));
+			BasicDBObject userSocialDoc = new BasicDBObject(USER_SOCIAL_TABLE_COLS.social_id.name(), socialDoc.get(SOCIAL_TABLE_COLS._id.name()));
 			userSocialTbl.insert(userSocialDoc);
 			for (String missionStr : missionList) {
 				DBCollection missionTbl = mongoDB.getCollection(missionStr + "_" + MongoDBStructure.SOCIAL_TBL);
-				BasicDBObject missionSocialDoc = new BasicDBObject(MISSION_SOCIAL_TABLE_COLS.social_id.name(), socialDoc.get(SOCIAL_TABLE_COLS._id));
+				BasicDBObject missionSocialDoc = new BasicDBObject(MISSION_SOCIAL_TABLE_COLS.social_id.name(), socialDoc.get(SOCIAL_TABLE_COLS._id.name()));
 				missionTbl.insert(missionSocialDoc);
 			}
 			response.setStatus(HttpServletResponse.SC_OK);

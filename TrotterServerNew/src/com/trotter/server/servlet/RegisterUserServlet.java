@@ -41,9 +41,8 @@ public class RegisterUserServlet extends HttpServlet {
 			
 			BasicDBObject inQuery = new BasicDBObject();
 			inQuery.put(MongoDBStructure.USER_TABLE_COLS.fb_id.name(), requestObj.getString(MongoDBStructure.USER_TABLE_COLS.fb_id.name()));
-		    DBCursor cursor = userTbl.find(inQuery);
-		    if (cursor.count() > 0) {
-		    	DBObject dbObject = cursor.next();
+			DBObject dbObject = userTbl.findOne(inQuery);
+		    if (dbObject != null) {
 		    	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		    	response.setContentType("application/json");
 		    	JSONObject responseObj = new JSONObject();

@@ -37,10 +37,19 @@ public class UpdateProfilePicsServlet extends HttpServlet {
 			String city = request.getParameter("city");
 			String state = request.getParameter("state");
 			String country = request.getParameter("country");
+			String gcm = request.getParameter("gcm");
+			System.out.println("pic-"+picUrls);
+			System.out.println("travelBio-"+travelBio);
+			System.out.println("fbId-"+fbId);
+			System.out.println("city-"+city);
+			System.out.println("state"+state);
+			System.out.println("country-"+country);
+			System.out.println("gcmRegId-"+gcm);
 			travelBio = Utility.isNullEmpty(travelBio) ? "" : travelBio;
 			city = Utility.isNullEmpty(city) ? "" : city;
 			state = Utility.isNullEmpty(state) ? "" : state;
 			country = Utility.isNullEmpty(country) ? "" : country;
+			gcm = Utility.isNullEmpty(gcm) ? "" : gcm;
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTblCol = mongoDB.getCollection(MongoDBStructure.USER_TBL);
@@ -54,7 +63,8 @@ public class UpdateProfilePicsServlet extends HttpServlet {
 					.append(MongoDBStructure.USER_TABLE_COLS.travel_bio.name(), travelBio)
 					.append(MongoDBStructure.USER_TABLE_COLS.home_city.name(), city)
 					.append(MongoDBStructure.USER_TABLE_COLS.home_state.name(), state)
-					.append(MongoDBStructure.USER_TABLE_COLS.home_country.name(), country));
+					.append(MongoDBStructure.USER_TABLE_COLS.home_country.name(), country)
+					.append(MongoDBStructure.USER_TABLE_COLS.gcm_reg_id.name(), gcm));
 			userTblCol.update(condDoc, setObj);
 			
 			response.setStatus(HttpServletResponse.SC_OK);

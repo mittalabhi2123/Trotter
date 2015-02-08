@@ -92,7 +92,6 @@ public class FetchSingleTrip extends HttpServlet {
 	    	response.setContentType("application/json");
 		    response.getWriter().write(jsonTripObj.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);
-		    return;
 		} catch (Exception e) {
 			response.setContentType("application/text");
 		    response.getWriter().write(e.getMessage());

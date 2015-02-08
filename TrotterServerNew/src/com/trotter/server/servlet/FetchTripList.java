@@ -104,10 +104,10 @@ public class FetchTripList extends HttpServlet {
 	    	response.setStatus(HttpServletResponse.SC_OK);
 		    return;
 		} catch (Exception e) {
+			e.printStackTrace();
 			response.setContentType("application/text");
 		    response.getWriter().write(e.getMessage());
 	    	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			e.printStackTrace();
 	    	return;
 		}
 	}

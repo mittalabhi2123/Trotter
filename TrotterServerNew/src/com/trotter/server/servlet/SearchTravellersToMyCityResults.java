@@ -21,6 +21,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
+import com.trotter.common.Const;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.MongoDBStructure.TRIP_TABLE_COLS;
@@ -46,6 +47,18 @@ public class SearchTravellersToMyCityResults extends HttpServlet {
 			}
 			System.out.println(request.getParameter("id"));
 			String id = request.getParameter("id");
+			int ageMin = 0;
+			int ageMax = 99;
+			String gender = "both";
+			if (!Utility.isNullEmpty(request.getParameter("ageMin"))) {
+				ageMin = Integer.parseInt(request.getParameter("ageMin"));
+			}
+			if (!Utility.isNullEmpty(request.getParameter("ageMax"))) {
+				ageMax = Integer.parseInt(request.getParameter("ageMax"));
+			}
+			if (!Utility.isNullEmpty(request.getParameter("gender"))) {
+				gender = request.getParameter("gender");
+			}
 			//TODO validations
 			UserFunctions userFunc = new UserFunctions();
 			DB mongoDB = ManageConnection.getDBConnection();
@@ -67,8 +80,12 @@ public class SearchTravellersToMyCityResults extends HttpServlet {
 		    DBCursor tripTblLst = tripTbl.find(inQuery);
 		    List<JSONObject> cotravellerList = new ArrayList<>();
 		    TripFunctions tripFunc = new TripFunctions();
+		    JSONObject tripObj = null;
 		    while(tripTblLst.hasNext()) {
-		    	cotravellerList.add(tripFunc.createTripJsonObj(tripTblLst.next(), userFunc, mongoDB));
+		    	tripObj = tripFunc.createTripJsonObj(tripTblLst.next(), userFunc, mongoDB, ageMin, ageMax, Const.gender.valueOf(gender), false);
+		    	if (tripObj == null)
+		    		continue;
+		    	cotravellerList.add(tripObj);
 		    }
 		    Collections.sort(cotravellerList, new Comparator<JSONObject>() {
 

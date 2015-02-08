@@ -60,7 +60,7 @@ public class RejectTripServlet extends HttpServlet {
 			doc.append(TRIP_RESPONSE_TABLE_COLS.result_id.name(), resultId);
 			doc.append(TRIP_RESPONSE_TABLE_COLS.result_type.name(), resultType);
 			doc.append(TRIP_RESPONSE_TABLE_COLS.outward_trip.name(), Boolean.parseBoolean(outwardTrip));
-			doc.append(TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.reject);
+			doc.append(TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.reject.name());
 			rejectTbl.insert(doc);
 			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (Exception e) {

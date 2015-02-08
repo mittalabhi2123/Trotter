@@ -45,10 +45,25 @@ public class TripSearchResults extends HttpServlet {
 			System.out.println(request.getParameter("id"));
 			String id = request.getParameter("id");
 			long toleranceInMillis = 0;
+			int ageMin = 0;
+			int ageMax = 99;
+			String gender = "both";
 			if (!Utility.isNullEmpty(request.getParameter("tolerance"))) {
 				toleranceInMillis = Long.parseLong(request.getParameter("tolerance")) * 24 * 3600 * 1000;
 			}
-			Const.SearchGroup isGroup = Const.SearchGroup.valueOf(request.getParameter("search"));
+			if (!Utility.isNullEmpty(request.getParameter("ageMin"))) {
+				ageMin = Integer.parseInt(request.getParameter("ageMin"));
+			}
+			if (!Utility.isNullEmpty(request.getParameter("ageMax"))) {
+				ageMax = Integer.parseInt(request.getParameter("ageMax"));
+			}
+			if (!Utility.isNullEmpty(request.getParameter("gender"))) {
+				gender = request.getParameter("gender");
+			}
+			Const.SearchGroup isGroup = Const.SearchGroup.all;
+			if (!Utility.isNullEmpty(request.getParameter("search"))) {
+				isGroup = Const.SearchGroup.valueOf(request.getParameter("search"));
+			}
 			//TODO validations
 			
 			DB mongoDB = ManageConnection.getDBConnection();
@@ -98,8 +113,12 @@ public class TripSearchResults extends HttpServlet {
 		    JSONArray cotravellerJsonArr = new JSONArray();
 		    TripFunctions tripFunc = new TripFunctions();
 		    UserFunctions userFunc = new UserFunctions();
+		    JSONObject tripObj = null;
 		    while(tripTblLst.hasNext()) {
-		    	cotravellerJsonArr.put(tripFunc.createTripJsonObj(tripTblLst.next(), userFunc, mongoDB));
+		    	tripObj = tripFunc.createTripJsonObj(tripTblLst.next(), userFunc, mongoDB, ageMin, ageMax, Const.gender.valueOf(gender), false);
+		    	if (tripObj == null)
+		    		continue;
+		    	cotravellerJsonArr.put(tripObj);
 		    }
 		    JSONArray localJsonArr = getLocalCompany(tripDbObject, userTbl, userFunc);
 		    JSONObject jsonObject = new JSONObject();

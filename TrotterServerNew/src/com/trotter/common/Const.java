@@ -16,6 +16,10 @@ public class Const {
     	individual, group, all;
     }
     
+    public static enum gender{
+    	male, female, both;
+    }
+    
     public static enum ResultType{
     	user,trip;
     }
@@ -26,5 +30,17 @@ public class Const {
     
     public static enum rejectRequestParam{
     	tripId, resultId, resultType, outwardTrip;
+    }
+    
+    public static enum fetchSocialRequestParam {
+    	friendId, mission, city, state, country, eventId;
+    }
+    
+    public static enum selfTimelineRequestParam {
+    	userId, mission, city, state, country, eventId;
+    }
+    
+    public static enum SaveLikePicsRequestParam {
+    	userId, socialId;
     }
 }
