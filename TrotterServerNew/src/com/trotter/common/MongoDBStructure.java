@@ -43,4 +43,8 @@ public class MongoDBStructure {
 	public static enum MISSION_SOCIAL_TABLE_COLS {
 		_id, social_id;
 	}
+    
+    public static enum EVENT_TBL_COLS {
+    	_id, event_name, country, state, city, date_from, date_to, remarks, event_type;
+    }
 }

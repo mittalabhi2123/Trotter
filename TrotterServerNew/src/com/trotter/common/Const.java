@@ -48,7 +48,7 @@ public class Const {
     	senderTripId, targetTripId, messageId, message, senderName;
     }
     
-    public static enum SaveEventsRequestparams {
-    	eventName, country, state, city, date_from, date_to, remarks;
+    public static enum SaveEventsRequestParams {
+    	event_name, country, state, city, date_from, date_to, remarks, event_type;
     }
 }
