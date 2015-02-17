@@ -44,18 +44,16 @@ public class FetchSingleTrip extends HttpServlet {
 			String id = request.getParameter("id");
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
-			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			DBCollection tripTbl = mongoDB.getCollection(MongoDBStructure.TRIP_TBL);
 			BasicDBObject tripInQuery = new BasicDBObject();
 			tripInQuery.put(MongoDBStructure.TRIP_TABLE_COLS._id.name(), new ObjectId(id));
-		    DBCursor cursor = tripTbl.find(tripInQuery);
-		    if (cursor.count() <= 0) {
+			DBObject dbObject = tripTbl.findOne(tripInQuery);
+		    if (dbObject == null) {
 		    	response.setContentType("application/text");
 			    response.getWriter().write("Trip doesn't exists!!!");
 		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		    	return;
 		    }
-	    	DBObject dbObject = cursor.next();
 	    	
 	    	List<JSONObject> userList = new ArrayList<>();
 	    	JSONObject jsonTripObj = new JSONObject();

@@ -57,6 +57,7 @@ public class AcceptTripServlet extends HttpServlet {
 			System.out.println(resultId);
 			System.out.println(resultType);
 			System.out.println(outwardTrip);
+			System.out.println(request.getParameter(rejectRequestParam.tableName.name()));
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection responseTbl = mongoDB.getCollection(TRIP_RESPONSE_TBL);
 			BasicDBObject doc = new BasicDBObject();
@@ -73,7 +74,7 @@ public class AcceptTripServlet extends HttpServlet {
 					.append(MongoDBStructure.TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.accept.name());
 			DBObject tripDb = responseTbl.findOne(searchQuery);
 			if (tripDb != null) {
-				response.getWriter().write("It's a match!!!");
+				response.getWriter().write(request.getParameter(rejectRequestParam.tableName.name()));
 			}
 		} catch (Exception e) {
 			response.setContentType("application/text");

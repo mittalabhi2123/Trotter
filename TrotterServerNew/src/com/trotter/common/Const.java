@@ -29,7 +29,7 @@ public class Const {
     }
     
     public static enum rejectRequestParam{
-    	tripId, resultId, resultType, outwardTrip;
+    	tripId, resultId, resultType, outwardTrip, tableName/*used by android client only in accept case, to create mysqlLite table, if match*/;
     }
     
     public static enum fetchSocialRequestParam {
@@ -42,5 +42,13 @@ public class Const {
     
     public static enum SaveLikePicsRequestParam {
     	userId, socialId;
+    }
+    
+    public static enum SendMessageRequestparams {
+    	senderTripId, targetTripId, messageId, message, senderName;
+    }
+    
+    public static enum SaveEventsRequestparams {
+    	eventName, country, state, city, date_from, date_to, remarks;
     }
 }

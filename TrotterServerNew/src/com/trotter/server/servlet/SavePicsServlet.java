@@ -39,6 +39,7 @@ public class SavePicsServlet extends HttpServlet {
 			}
 			String socialId = request.getParameter(Const.SaveLikePicsRequestParam.socialId.name());
 			String userId = request.getParameter(Const.SaveLikePicsRequestParam.userId.name());
+			System.out.println("Save Pic Servlet---SocialId:"+socialId+", userId:"+userId);
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTblCol = mongoDB.getCollection(MongoDBStructure.USER_TBL);

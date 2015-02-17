@@ -16,7 +16,7 @@ public class TripFunctions {
 		return createTripJsonObj(tripDbObj, userFunc, mongoDB, 0, 99, Const.gender.both, true);
 	}
 
-	public JSONObject createTripJsonObj(DBObject tripDbObj, UserFunctions userFunc, DB mongoDB, int ageMin, int ageMax, Const.gender gender, boolean skipValidation)
+	public JSONObject createTripJsonObj(DBObject tripDbObj, UserFunctions userFunc, DB mongoDB, int ageMin, int ageMax, Const.gender gender, boolean skipAgeGenderFilter)
 			throws JSONException {
 		JSONObject jsonTripObj = new JSONObject();
 		for (MongoDBStructure.TRIP_TABLE_COLS tripColName : MongoDBStructure.TRIP_TABLE_COLS.values()) {
@@ -25,7 +25,7 @@ public class TripFunctions {
 			}
 		}
 		JSONObject userTbl = userFunc.fetchUserById(mongoDB, new ObjectId(jsonTripObj.getString(TRIP_TABLE_COLS.user_id.name())));
-		if (!skipValidation) {
+		if (!skipAgeGenderFilter) {
 			if (userTbl.has(MongoDBStructure.USER_TABLE_COLS.dob.name())) {
 				long dobMillis = Long.parseLong((String)userTbl.get(MongoDBStructure.USER_TABLE_COLS.dob.name()));
 				double age = dobMillis / (1000 * 3600 * 24 * 365);
@@ -34,7 +34,7 @@ public class TripFunctions {
 				}
 			}
 		}
-		if (!skipValidation) {
+		if (!skipAgeGenderFilter) {
 			if (userTbl.has(MongoDBStructure.USER_TABLE_COLS.gender.name())) {
 				Const.gender userGender = Const.gender.valueOf((String)userTbl.get(MongoDBStructure.USER_TABLE_COLS.gender.name()));
 				if (gender != Const.gender.both && !gender.equals(userGender))

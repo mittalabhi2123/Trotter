@@ -26,7 +26,9 @@ import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.util.StringUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
 
 import com.sun.org.apache.xerces.internal.impl.xpath.regex.ParseException;
 
@@ -53,7 +55,7 @@ public class SmackCcsClient {
                 @Override
                 public PacketExtension parseExtension(XmlPullParser parser) throws
                         Exception {
-                    String json = parser.nextText();
+                    String json = parser.getText();
                     return new GcmPacketExtension(json);
                 }
             });
@@ -105,8 +107,9 @@ public class SmackCcsClient {
      *
      * <p>Logs a INFO message, but subclasses could override it to
      * properly handle ACKs.
+     * @throws JSONException 
      */
-    protected void handleAckReceipt(JSONObject jsonObject) {
+    protected void handleAckReceipt(JSONObject jsonObject) throws JSONException {
         String messageId = jsonObject.getString("message_id");
         String from = jsonObject.getString("from");
         logger.log(Level.INFO, "handleAckReceipt() from: " + from + ",messageId: " + messageId);
@@ -117,14 +120,15 @@ public class SmackCcsClient {
      *
      * <p>Logs a INFO message, but subclasses could override it to
      * properly handle NACKs.
+     * @throws JSONException 
      */
-    protected void handleNackReceipt(JSONObject jsonObject) {
+    protected void handleNackReceipt(JSONObject jsonObject) throws JSONException {
         String messageId = jsonObject.getString("message_id");
         String from = jsonObject.getString("from");
         logger.log(Level.INFO, "handleNackReceipt() from: " + from + ",messageId: " + messageId);
     }
 
-    protected void handleControlMessage(JSONObject jsonObject) {
+    protected void handleControlMessage(JSONObject jsonObject) throws JSONException {
         logger.log(Level.INFO, "handleControlMessage(): " + jsonObject);
         String controlType = jsonObject.getString("control_type");
         if ("CONNECTION_DRAINING".equals(controlType)) {
@@ -146,10 +150,11 @@ public class SmackCcsClient {
      * @param timeToLive GCM time_to_live parameter (Optional).
      * @param delayWhileIdle GCM delay_while_idle parameter (Optional).
      * @return JSON encoded GCM message.
+     * @throws JSONException 
      */
     public static String createJsonMessage(String to, String messageId,
             Map<String, String> payload, String collapseKey, Long timeToLive,
-            Boolean delayWhileIdle) {
+            Boolean delayWhileIdle) throws JSONException {
         JSONObject message = new JSONObject();
         message.put("to", to);
         if (collapseKey != null) {
@@ -173,8 +178,9 @@ public class SmackCcsClient {
      * @param to RegistrationId of the device who sent the upstream message.
      * @param messageId messageId of the upstream message to be acknowledged to CCS.
      * @return JSON encoded ack.
+     * @throws JSONException 
      */
-     protected static String createJsonAck(String to, String messageId) {
+     protected static String createJsonAck(String to, String messageId) throws JSONException {
         JSONObject message = new JSONObject();
         message.put("message_type", "ack");
         message.put("to", to);

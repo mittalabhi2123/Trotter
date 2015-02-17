@@ -56,6 +56,7 @@ public class UploadSocialPicServlet extends HttpServlet {
 			List<String> picUrlList = Arrays.asList(pics.split(","));
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
+			System.out.println(System.currentTimeMillis());
 			DBCollection socialTblCol = mongoDB.getCollection(MongoDBStructure.SOCIAL_TBL);
 			BasicDBObject socialDoc = new BasicDBObject(SOCIAL_TABLE_COLS.user_id.name(), userId)
 				.append(SOCIAL_TABLE_COLS.caption.name(), caption).append(SOCIAL_TABLE_COLS.city.name(), city)

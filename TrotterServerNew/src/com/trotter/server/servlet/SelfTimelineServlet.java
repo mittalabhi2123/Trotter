@@ -49,6 +49,7 @@ public class SelfTimelineServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid/No request received");
 				return;
 			}
+			System.out.println("Self Timeline.");
 			System.out.println(userId);
 			System.out.println(mission);
 			System.out.println(city + "-" + state + "-" + country);
@@ -73,15 +74,21 @@ public class SelfTimelineServlet extends HttpServlet {
 				doc.append(SOCIAL_TABLE_COLS.country.name(), country);
 			if (!Utility.isNullEmpty(eventId))
 				doc.append(SOCIAL_TABLE_COLS.event.name(), eventId);
-			DBCursor socialCursor = socialTbl.find(doc);
+			DBCursor socialCursor = null;
+			if (doc.size() > 0) {
+				socialCursor = socialTbl.find(doc);
+			}
 			
 			JSONArray socialArr = new JSONArray();
 			Map<String, JSONObject> socialMap = new HashMap<>();
-			while (socialCursor.hasNext()) {
-				DBObject socialObj = socialCursor.next();
-				JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
-				socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-				socialArr.put(jsonObj);
+			if (socialCursor != null) {
+				while (socialCursor.hasNext()) {
+					DBObject socialObj = socialCursor.next();
+					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
+					socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
+					socialArr.put(jsonObj);
+				}
+				
 			}
 			while (selfPosts.hasNext()) {
 				DBObject userSocialObj = selfPosts.next();
