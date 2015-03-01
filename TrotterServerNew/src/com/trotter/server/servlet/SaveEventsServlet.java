@@ -13,12 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.trotter.common.Const.ResultType;
-import com.trotter.common.Const.TripResponse;
 import com.trotter.common.Const.SaveEventsRequestParams;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure.EVENT_TBL_COLS;
-import com.trotter.common.Utility;
 
 @WebServlet("/SaveEvents")
 public class SaveEventsServlet extends HttpServlet {
@@ -26,6 +23,10 @@ public class SaveEventsServlet extends HttpServlet {
     public SaveEventsServlet() {
     }
 
+    protected void get(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+    	service(request, response);
+    }
+    
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
 			String eventName = request.getParameter(SaveEventsRequestParams.event_name.name());

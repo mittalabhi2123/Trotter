@@ -1,6 +1,12 @@
 package com.trotter.server.servlet;
 
+import static com.trotter.common.MongoDBStructure.SOCIAL_TABLE_COLS.upload_date;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -10,9 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.bson.types.ObjectId;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.trotter.common.Const;
@@ -40,18 +46,29 @@ public class FetchSavedPicsServlet extends HttpServlet {
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTblCol = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			JSONObject userObj = new UserFunctions().fetchUserById(mongoDB, new ObjectId(userId));
-			JSONArray savedPostsArr = new JSONArray();
+			List<JSONObject> savedPostsList = new ArrayList<>();
 			if (userObj.has(MongoDBStructure.USER_TABLE_COLS.saved_pics.name())){
 				String saved = userObj.getString(MongoDBStructure.USER_TABLE_COLS.saved_pics.name());
 				SocialFunctions socialFunc = new SocialFunctions();
 				for (String socialId : saved.split(",")) {
 					if (!Utility.isNullEmpty(socialId))
-						savedPostsArr.put(socialFunc.fetchById(mongoDB, new ObjectId(socialId)));
+						savedPostsList.add(socialFunc.fetchById(mongoDB, new ObjectId(socialId)));
 				}
 			}
-
+			Collections.sort(savedPostsList, new Comparator<JSONObject>() {
+				@Override
+				public int compare(JSONObject o1, JSONObject o2) {
+					try {
+						return Long.valueOf(o1.getLong(upload_date.name())).compareTo(Long.valueOf(o2.getLong(upload_date.name()))) * -1;
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					return 0;
+				}
+			});
+			JSONArray savedPicsArr = new JSONArray(savedPostsList);
 			response.setContentType("application/json");
-		    response.getWriter().write(savedPostsArr.toString());
+		    response.getWriter().write(savedPicsArr.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);
 		} catch (Exception e) {
 			e.printStackTrace();

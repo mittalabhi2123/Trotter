@@ -65,7 +65,9 @@ public class TripSearchResults extends HttpServlet {
 				isGroup = Const.SearchGroup.valueOf(request.getParameter("search"));
 			}
 			//TODO validations
-			
+			for (String paramKey : request.getParameterMap().keySet()) {
+				System.out.println(paramKey + "-->" + request.getParameter(paramKey));
+			}
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			DBCollection tripTbl = mongoDB.getCollection(MongoDBStructure.TRIP_TBL);
@@ -96,8 +98,13 @@ public class TripSearchResults extends HttpServlet {
 		    inQuery.put(TRIP_TABLE_COLS.dest_country.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_country.name()));
 		    long tripStartDate = (Long)tripDbObject.get(TRIP_TABLE_COLS.start_date.name());
 		    long tripEndDate = (Long)tripDbObject.get(TRIP_TABLE_COLS.end_date.name());
-		    inQuery.put(TRIP_TABLE_COLS.start_date.name(), new BasicDBObject("$gte", (tripStartDate - toleranceInMillis)).append("$lte", (tripStartDate + toleranceInMillis)));
-		    inQuery.put(TRIP_TABLE_COLS.end_date.name(), new BasicDBObject("$gte", (tripEndDate - toleranceInMillis)).append("$lte", (tripEndDate + toleranceInMillis)));
+		    long startMin = tripStartDate - toleranceInMillis;
+		    long startMax = tripStartDate + toleranceInMillis;
+		    long endMin = tripEndDate - toleranceInMillis;
+		    long endMax = tripEndDate + toleranceInMillis;
+		    inQuery.put(TRIP_TABLE_COLS.start_date.name(), new BasicDBObject("$gte", startMin).append("$lte", startMax));
+		    inQuery.put(TRIP_TABLE_COLS.end_date.name(), new BasicDBObject("$gte", endMin).append("$lte", endMax));
+		    inQuery.put(TRIP_TABLE_COLS._id.name(), new BasicDBObject("$ne", new ObjectId(id)));
 		    switch(isGroup) {
 		    	case individual:
 		    		inQuery.put(TRIP_TABLE_COLS.is_individual.name(), true);
@@ -109,7 +116,10 @@ public class TripSearchResults extends HttpServlet {
 		    	default:
 		    		break;
 		    }
+		    System.out.println("Query Formed:" + inQuery);
 		    DBCursor tripTblLst = tripTbl.find(inQuery);
+		    System.out.println("List found native:" + tripTblLst.count());
+		    
 		    JSONArray cotravellerJsonArr = new JSONArray();
 		    TripFunctions tripFunc = new TripFunctions();
 		    UserFunctions userFunc = new UserFunctions();
@@ -120,6 +130,7 @@ public class TripSearchResults extends HttpServlet {
 		    		continue;
 		    	cotravellerJsonArr.put(tripObj);
 		    }
+		    System.out.println("List found:" + cotravellerJsonArr);
 		    JSONArray localJsonArr = getLocalCompany(tripDbObject, userTbl, userFunc);
 		    JSONObject jsonObject = new JSONObject();
 		    jsonObject.put("local", localJsonArr);

@@ -28,13 +28,14 @@ public class SocialFunctions {
 		UserFunctions userFunc = new UserFunctions();
 		List<DBCursor> dbCursorList = new ArrayList<>();
 		JSONArray jsonArr = userFunc.fetchUserByFbIdList(mongoDB, friendId.split(","));
+		System.out.println("Friend's Id lists:" + jsonArr);
 		if (jsonArr == null || jsonArr.length() == 0 || jsonArr.get(0) == null) {
 			System.out.println("Invalid friend facebook id provided.");
 			//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid friend facebook id provided.");
 			return new ArrayList<>();
 		}
 		for (int i = 0 ; i <jsonArr.length() ; i++) {
-			DBCollection userSocialTbl = mongoDB.getCollection(jsonArr.getJSONObject(0).getString(
+			DBCollection userSocialTbl = mongoDB.getCollection(jsonArr.getJSONObject(i).getString(
 					USER_TABLE_COLS._id.name()) + "_" + MongoDBStructure.SOCIAL_TBL);
 			if (userSocialTbl == null) {
 				continue;

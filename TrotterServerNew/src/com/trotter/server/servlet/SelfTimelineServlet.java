@@ -1,6 +1,11 @@
 package com.trotter.server.servlet;
 
+import static com.trotter.common.MongoDBStructure.SOCIAL_TABLE_COLS.upload_date;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.bson.types.ObjectId;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.mongodb.BasicDBObject;
@@ -20,7 +26,6 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.trotter.common.Const.fetchSocialRequestParam;
 import com.trotter.common.Const.selfTimelineRequestParam;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
@@ -78,15 +83,12 @@ public class SelfTimelineServlet extends HttpServlet {
 			if (doc.size() > 0) {
 				socialCursor = socialTbl.find(doc);
 			}
-			
-			JSONArray socialArr = new JSONArray();
 			Map<String, JSONObject> socialMap = new HashMap<>();
 			if (socialCursor != null) {
 				while (socialCursor.hasNext()) {
 					DBObject socialObj = socialCursor.next();
 					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
 					socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-					socialArr.put(jsonObj);
 				}
 				
 			}
@@ -99,7 +101,6 @@ public class SelfTimelineServlet extends HttpServlet {
 				DBObject socialObj = socialTbl.findOne(dbObject);
 				JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
 				socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-				socialArr.put(jsonObj);
 			}
 			for (DBCursor missionCursor : missionPostList) {
 				while (missionCursor.hasNext()) {
@@ -111,9 +112,26 @@ public class SelfTimelineServlet extends HttpServlet {
 					DBObject socialObj = socialTbl.findOne(dbObject);
 					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
 					socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-					socialArr.put(jsonObj);
 				}
 			}
+			List<JSONObject> socialList = new ArrayList<>();
+			for (JSONObject obj : socialMap.values()) {
+				String countryText = obj.getString(MongoDBStructure.SOCIAL_TABLE_COLS.country.name());
+				if (!Utility.isNullEmpty(countryText))
+					socialList.add(obj);// send only checked-in posts, ie, where location is mentioned.
+			}
+			Collections.sort(socialList, new Comparator<JSONObject>() {
+				@Override
+				public int compare(JSONObject o1, JSONObject o2) {
+					try {
+						return Long.valueOf(o1.getLong(upload_date.name())).compareTo(Long.valueOf(o2.getLong(upload_date.name()))) * -1;
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					return 0;
+				}
+			});
+			JSONArray socialArr = new JSONArray(socialList);
 			response.setContentType("application/json");
 		    response.getWriter().write(socialArr.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);

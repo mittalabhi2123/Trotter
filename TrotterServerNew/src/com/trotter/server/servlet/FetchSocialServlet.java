@@ -1,13 +1,12 @@
 package com.trotter.server.servlet;
 
 import static com.trotter.common.MongoDBStructure.SOCIAL_TABLE_COLS.upload_date;
+import static com.trotter.common.Utility.isNullEmpty;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,6 @@ import com.trotter.common.MongoDBStructure.SOCIAL_TABLE_COLS;
 import com.trotter.common.MongoDBStructure.USER_SOCIAL_TABLE_COLS;
 import com.trotter.common.Utility;
 import com.trotter.server.servlet.functions.SocialFunctions;
-import static com.trotter.common.Utility.isNullEmpty;
 
 @WebServlet("/fetchSocial")
 public class FetchSocialServlet extends HttpServlet {
@@ -57,13 +55,11 @@ public class FetchSocialServlet extends HttpServlet {
 			System.out.println(city + "-" + state + "-" + country);
 			System.out.println(eventId);
 			DB mongoDB = ManageConnection.getDBConnection();
-			JSONArray socialArr = new JSONArray();
 			SocialFunctions socialFunc = new SocialFunctions();
 			List<DBCursor> friendsPostList = socialFunc.getFriendsPosts(mongoDB, friendId);
 			List<DBCursor> missionPostList = socialFunc.getMissionPosts(mongoDB, mission);
 
 			DBCollection socialTbl = mongoDB.getCollection(MongoDBStructure.SOCIAL_TBL);
-			List<JSONObject> friendSocialList = new ArrayList<>();
 			Map<String, JSONObject> friendSocialMap = new HashMap<>();
 			for (DBCursor friendsPosts : friendsPostList) {
 				while (friendsPosts.hasNext()) {
@@ -73,11 +69,9 @@ public class FetchSocialServlet extends HttpServlet {
 					DBObject socialObj = socialTbl.findOne(dbObject);
 					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
 					friendSocialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-					friendSocialList.add(jsonObj);
 				}
 			}
-			System.out.println(friendId + " : " + friendSocialList.size());
-			List<JSONObject> missionSocialList = new ArrayList<>();
+			System.out.println(friendId + " : " + friendSocialMap.size());
 			Map<String, JSONObject> missionSocialMap = new HashMap<>();
 			for (DBCursor missionCursor : missionPostList) {
 				while (missionCursor.hasNext()) {
@@ -87,12 +81,10 @@ public class FetchSocialServlet extends HttpServlet {
 					DBObject socialObj = socialTbl.findOne(dbObject);
 					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
 					missionSocialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-					missionSocialList.add(jsonObj);
 				}
 			}
-			System.out.println(mission + " : " + missionSocialList.size());
+			System.out.println(mission + " : " + missionSocialMap.size());
 
-			List<JSONObject> locationSocialList = new ArrayList<>();
 			Map<String, JSONObject> locationSocialMap = new HashMap<>();
 			BasicDBObject doc = new BasicDBObject();
 			if (!Utility.isNullEmpty(city))
@@ -104,42 +96,31 @@ public class FetchSocialServlet extends HttpServlet {
 			if (!Utility.isNullEmpty(eventId))
 				doc.append(SOCIAL_TABLE_COLS.event.name(), eventId);
 			DBCursor socialCursor = socialTbl.find(doc);
-			System.out.println("Doc Size:"+doc.size());
-			System.out.println(System.currentTimeMillis());
-			System.out.println(new Date(System.currentTimeMillis()));
-			System.out.println(new Date());
-			System.out.println(Calendar.getInstance());
-			Calendar cal = Calendar.getInstance();
-			cal.setTimeInMillis(System.currentTimeMillis());
-			System.out.println(cal.getTime());
 			while (socialCursor.hasNext()) {
 				DBObject socialObj = socialCursor.next();
 				JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
 				locationSocialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-				locationSocialList.add(jsonObj);
 			}
-			System.out.println(doc + " : " + locationSocialList.size());
-			if ((!isNullEmpty(friendId) && friendsPostList.isEmpty()) || (locationSocialList.isEmpty())
+			System.out.println(doc + " : " + locationSocialMap.size());
+			if ((!isNullEmpty(friendId) && friendsPostList.isEmpty()) || (locationSocialMap.isEmpty())
 					|| (!isNullEmpty(mission) && missionPostList.isEmpty())) {
 				// return empty response if, any of the specified filter fails
 				response.setContentType("application/json");
-			    response.getWriter().write(socialArr.toString());
+			    response.getWriter().write(new JSONArray().toString());
 		    	response.setStatus(HttpServletResponse.SC_OK);
 		    	return;
 			}
-			List<JSONObject> socialList = new ArrayList<>();
+			System.out.println(locationSocialMap.keySet());
+			System.out.println(missionSocialMap.keySet());
 			Map<String, JSONObject> socialMap = new HashMap<>();
-			socialList.addAll(friendSocialList);
-			socialList.addAll(missionSocialList);
 			socialMap.putAll(friendSocialMap);
 			socialMap.putAll(missionSocialMap);
 			if ((isNullEmpty(friendId) && isNullEmpty(mission)) || (doc.size() > 0)) {
-				
 				// add all the records, if no friends/mission filter is specified, or we have filter for location as well.
-				socialList.addAll(locationSocialList);
 				socialMap.putAll(locationSocialMap);
 			}
-			System.out.println("SocialList size:" + socialList.size());
+			System.out.println("SocialList size:" + socialMap.size());
+			List<JSONObject> socialList = new ArrayList<>(socialMap.values()); 
 			Collections.sort(socialList, new Comparator<JSONObject>() {
 				@Override
 				public int compare(JSONObject o1, JSONObject o2) {
@@ -151,8 +132,7 @@ public class FetchSocialServlet extends HttpServlet {
 					return 0;
 				}
 			});
-			for(JSONObject obj : socialList)
-				socialArr.put(obj);
+			JSONArray socialArr = new JSONArray(socialList);
 			response.setContentType("application/json");
 		    response.getWriter().write(socialArr.toString());
 	    	response.setStatus(HttpServletResponse.SC_OK);

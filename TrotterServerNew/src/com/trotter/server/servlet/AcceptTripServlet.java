@@ -10,13 +10,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.bson.types.ObjectId;
+import org.json.JSONObject;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.trotter.common.Const.ResultType;
 import com.trotter.common.Const.TripResponse;
 import com.trotter.common.Const.rejectRequestParam;
 import com.trotter.common.ManageConnection;
@@ -69,12 +68,19 @@ public class AcceptTripServlet extends HttpServlet {
 			responseTbl.insert(doc);
 			response.setStatus(HttpServletResponse.SC_OK);
 			BasicDBObject searchQuery = new BasicDBObject();
-			searchQuery.append(MongoDBStructure.TRIP_RESPONSE_TABLE_COLS.trip_id.name(), new ObjectId(resultId))
+			searchQuery.append(MongoDBStructure.TRIP_RESPONSE_TABLE_COLS.trip_id.name(), resultId)
 					.append(MongoDBStructure.TRIP_RESPONSE_TABLE_COLS.result_id.name(), tripId)
 					.append(MongoDBStructure.TRIP_RESPONSE_TABLE_COLS.response.name(), TripResponse.accept.name());
 			DBObject tripDb = responseTbl.findOne(searchQuery);
+			JSONObject responseObj = new JSONObject();
+			responseObj.put("tableName", request.getParameter(rejectRequestParam.tableName.name()));
+			responseObj.put("partyOneInfo", request.getParameter("partyOneInfo"));
+			responseObj.put("partyTwoInfo", request.getParameter("partyTwoInfo"));
+			response.setContentType("application/json");
+			System.out.println(searchQuery);
+			System.out.println(tripDb);
 			if (tripDb != null) {
-				response.getWriter().write(request.getParameter(rejectRequestParam.tableName.name()));
+				response.getWriter().write(responseObj.toString());
 			}
 		} catch (Exception e) {
 			response.setContentType("application/text");

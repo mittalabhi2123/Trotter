@@ -47,6 +47,7 @@ public class UploadSocialPicServlet extends HttpServlet {
 			String state = request.getParameter("state");
 			String country = request.getParameter("country");
 			String eventId = request.getParameter("event");
+			String time = request.getParameter("time");
 			
 			caption = Utility.isNullEmpty(caption) ? "" : caption;
 			city = Utility.isNullEmpty(city) ? "" : city;
@@ -57,12 +58,13 @@ public class UploadSocialPicServlet extends HttpServlet {
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			System.out.println(System.currentTimeMillis());
+			System.out.println(time);
 			DBCollection socialTblCol = mongoDB.getCollection(MongoDBStructure.SOCIAL_TBL);
-			BasicDBObject socialDoc = new BasicDBObject(SOCIAL_TABLE_COLS.user_id.name(), userId)
-				.append(SOCIAL_TABLE_COLS.caption.name(), caption).append(SOCIAL_TABLE_COLS.city.name(), city)
-				.append(SOCIAL_TABLE_COLS.state.name(), state).append(SOCIAL_TABLE_COLS.country.name(), country)
+			BasicDBObject socialDoc = new BasicDBObject(SOCIAL_TABLE_COLS.user_id.name(), userId.trim())
+				.append(SOCIAL_TABLE_COLS.caption.name(), caption).append(SOCIAL_TABLE_COLS.city.name(), city.trim())
+				.append(SOCIAL_TABLE_COLS.state.name(), state.trim()).append(SOCIAL_TABLE_COLS.country.name(), country.trim())
 				.append(SOCIAL_TABLE_COLS.mission.name(), missionList).append(SOCIAL_TABLE_COLS.pic.name(), picUrlList)
-				.append(SOCIAL_TABLE_COLS.upload_date.name(), System.currentTimeMillis()).append(SOCIAL_TABLE_COLS.event.name(), eventId);
+				.append(SOCIAL_TABLE_COLS.upload_date.name(), Long.parseLong(time)).append(SOCIAL_TABLE_COLS.event.name(), eventId);
 			socialTblCol.insert(socialDoc);
 			DBCollection userSocialTbl = mongoDB.getCollection(userId + "_" + MongoDBStructure.SOCIAL_TBL);
 			BasicDBObject userSocialDoc = new BasicDBObject(USER_SOCIAL_TABLE_COLS.social_id.name(), socialDoc.get(SOCIAL_TABLE_COLS._id.name()));

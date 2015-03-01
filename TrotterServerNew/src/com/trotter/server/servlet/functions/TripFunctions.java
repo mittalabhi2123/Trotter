@@ -1,5 +1,7 @@
 package com.trotter.server.servlet.functions;
 
+import java.util.Calendar;
+
 import org.bson.types.ObjectId;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,6 +11,7 @@ import com.mongodb.DBObject;
 import com.trotter.common.Const;
 import com.trotter.common.MongoDBStructure;
 import com.trotter.common.MongoDBStructure.TRIP_TABLE_COLS;
+import com.trotter.common.Utility;
 
 public class TripFunctions {
 
@@ -26,9 +29,14 @@ public class TripFunctions {
 		}
 		JSONObject userTbl = userFunc.fetchUserById(mongoDB, new ObjectId(jsonTripObj.getString(TRIP_TABLE_COLS.user_id.name())));
 		if (!skipAgeGenderFilter) {
-			if (userTbl.has(MongoDBStructure.USER_TABLE_COLS.dob.name())) {
-				long dobMillis = Long.parseLong((String)userTbl.get(MongoDBStructure.USER_TABLE_COLS.dob.name()));
-				double age = dobMillis / (1000 * 3600 * 24 * 365);
+			if (userTbl.has(MongoDBStructure.USER_TABLE_COLS.dob.name()) && !Utility.isNullEmpty(userTbl.getString(MongoDBStructure.USER_TABLE_COLS.dob.name()))) {
+				System.out.println("dob::"+userTbl.getString(MongoDBStructure.USER_TABLE_COLS.dob.name()));
+				long dobMillis = Long.parseLong(userTbl.getString(MongoDBStructure.USER_TABLE_COLS.dob.name()));
+				long ageDiff = System.currentTimeMillis() - dobMillis;
+				double millisToYearFactor = 1000L * 3600L * 24L * 365L;
+				double age = ageDiff / millisToYearFactor;
+				System.out.println(System.currentTimeMillis() + ", " + dobMillis + ", " + ageDiff + ", " + millisToYearFactor);
+				System.out.println(age + ", " + ageMin + ", " + ageMax);
 				if (age < ageMin || age > ageMax) {
 					return null;
 				}
@@ -37,6 +45,7 @@ public class TripFunctions {
 		if (!skipAgeGenderFilter) {
 			if (userTbl.has(MongoDBStructure.USER_TABLE_COLS.gender.name())) {
 				Const.gender userGender = Const.gender.valueOf((String)userTbl.get(MongoDBStructure.USER_TABLE_COLS.gender.name()));
+				System.out.println(gender + ", " + userGender);
 				if (gender != Const.gender.both && !gender.equals(userGender))
 					return null;
 			}

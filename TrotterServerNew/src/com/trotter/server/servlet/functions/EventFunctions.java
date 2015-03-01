@@ -1,5 +1,10 @@
 package com.trotter.server.servlet.functions;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,7 +26,7 @@ public class EventFunctions {
 		DBCursor cursor = eventTbl.find(inQuery);
 	    if (cursor.count() <= 0)
 	    	return null;
-	    JSONArray eventTblLst = new JSONArray();
+	    List<JSONObject> eventTblLst = new ArrayList<>();
 	    while (cursor.hasNext()) {
 	    	JSONObject eventTblObj = new JSONObject();
 	    	DBObject dbObject = cursor.next();
@@ -30,10 +35,19 @@ public class EventFunctions {
 	    			eventTblObj.put(colName.name(), dbObject.get(colName.name()));
 	    		}
 	    	}
-    	    eventTblLst.put(eventTblObj);
+    	    eventTblLst.add(eventTblObj);
 	    }
-	    
-    	return eventTblLst;
+	    Collections.sort(eventTblLst, new Comparator<JSONObject>() {
+			@Override
+			public int compare(JSONObject o1, JSONObject o2) {
+				try {
+					return o1.getString(MongoDBStructure.EVENTS_COLS.name.name()).compareTo(o2.getString(MongoDBStructure.EVENTS_COLS.name.name()));
+				} catch (JSONException e) {
+					return 0;
+				}
+			}
+		});
+    	return new JSONArray(eventTblLst);
 	}
 
 }

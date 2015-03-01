@@ -44,7 +44,10 @@ public class LikedPicsServlet extends HttpServlet {
 			String liked = "";
 			if (socialObj.has(MongoDBStructure.SOCIAL_TABLE_COLS.liked_by_users.name()))
 				liked = socialObj.getString(MongoDBStructure.SOCIAL_TABLE_COLS.liked_by_users.name());
-			liked = liked + "," + userId;
+			if (Utility.isNullEmpty(liked))
+				liked = userId;
+			else
+				liked = liked + "," + userId;
 			BasicDBObject condDoc = new BasicDBObject(MongoDBStructure.SOCIAL_TABLE_COLS._id.name(), new ObjectId(socialId));
 			BasicDBObject setObj = new BasicDBObject().append(Utility.MongoQueryHandles.$set.name(), 
 					new BasicDBObject().append(MongoDBStructure.SOCIAL_TABLE_COLS.liked_by_users.name(), liked));
