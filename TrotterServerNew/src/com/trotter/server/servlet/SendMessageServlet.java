@@ -95,9 +95,16 @@ public class SendMessageServlet extends HttpServlet {
 			tripInQuery.put(MongoDBStructure.TRIP_TABLE_COLS._id.name(), new ObjectId(targetTripId));
 			DBObject dbObject = tripTbl.findOne(tripInQuery);
 		    if (dbObject == null) {
-		    	response.setContentType("application/text");
-			    response.getWriter().write("Trip doesn't exists!!!");
-		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+		    	JSONObject userJsonObj = userFunctions.fetchUserById(mongoDB, new ObjectId(targetTripId));
+		    	if (userJsonObj == null) {
+		    		response.setContentType("application/text");
+				    response.getWriter().write("Trip doesn't exists!!!");
+			    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+			    	return;
+		    	}
+		    	//case for local user, rather trip to trip communication
+		    	sendMessageHttp(messageId, userJsonObj.getString(MongoDBStructure.USER_TABLE_COLS.gcm_reg_id.name()), message,
+	    				request.getParameter(SendMessageRequestparams.senderName.name()), senderTripId);
 		    	return;
 		    }
 	    	JSONObject tripJsonObj = tripFunctions.createTripJsonObj(dbObject, userFunctions, mongoDB);
@@ -107,8 +114,9 @@ public class SendMessageServlet extends HttpServlet {
 	    		BasicDBList groupMembers = (BasicDBList) dbObject.get(MongoDBStructure.TRIP_TABLE_COLS.group_members.name());
 	    		if (groupMembers != null && groupMembers.size() > 0) {
 	    			for (int i = 0 ; i < groupMembers.size() ; i++) {
-	    	    		if (groupMembers.get(i) == null || groupMembers.get(i).toString().equals(""))
+	    	    		if (groupMembers.get(i) == null || groupMembers.get(i).toString().equals("")) {
 	    	    			continue;
+	    	    		}
 	    	    		ObjectId userId = new ObjectId(((String)groupMembers.get(i)));
 	    	    		userList.add(userFunctions.fetchUserById(mongoDB, userId));
 	    	    	}

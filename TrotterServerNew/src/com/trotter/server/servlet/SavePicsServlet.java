@@ -45,15 +45,19 @@ public class SavePicsServlet extends HttpServlet {
 			DBCollection userTblCol = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			JSONObject userObj = new UserFunctions().fetchUserById(mongoDB, new ObjectId(userId));
 			String saved = "";
+			response.setStatus(HttpServletResponse.SC_OK);
 			if (userObj.has(MongoDBStructure.USER_TABLE_COLS.saved_pics.name()))
 				saved = userObj.getString(MongoDBStructure.USER_TABLE_COLS.saved_pics.name());
-			saved = saved + "," + socialId;
+			if (saved.indexOf(socialId) == -1)
+				saved = saved + "," + socialId;
+			else
+				return;
 			BasicDBObject condDoc = new BasicDBObject(MongoDBStructure.USER_TABLE_COLS._id.name(), new ObjectId(userId));
 			BasicDBObject setObj = new BasicDBObject().append(Utility.MongoQueryHandles.$set.name(), 
 					new BasicDBObject().append(MongoDBStructure.USER_TABLE_COLS.saved_pics.name(), saved));
 			userTblCol.update(condDoc, setObj);
 			
-			response.setStatus(HttpServletResponse.SC_OK);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());

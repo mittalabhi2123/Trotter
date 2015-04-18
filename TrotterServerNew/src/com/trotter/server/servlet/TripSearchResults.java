@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -89,34 +90,34 @@ public class TripSearchResults extends HttpServlet {
 		    	response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		    	return;
 		    }
-		    inQuery = new BasicDBObject();
-		    inQuery.put(TRIP_TABLE_COLS.origin_city.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_city.name()));
-		    inQuery.put(TRIP_TABLE_COLS.origin_state.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_state.name()));
-		    inQuery.put(TRIP_TABLE_COLS.origin_country.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_country.name()));
-		    inQuery.put(TRIP_TABLE_COLS.dest_city.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_city.name()));
-		    inQuery.put(TRIP_TABLE_COLS.dest_state.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_state.name()));
-		    inQuery.put(TRIP_TABLE_COLS.dest_country.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_country.name()));
-		    long tripStartDate = (Long)tripDbObject.get(TRIP_TABLE_COLS.start_date.name());
-		    long tripEndDate = (Long)tripDbObject.get(TRIP_TABLE_COLS.end_date.name());
-		    long startMin = tripStartDate - toleranceInMillis;
-		    long startMax = tripStartDate + toleranceInMillis;
-		    long endMin = tripEndDate - toleranceInMillis;
-		    long endMax = tripEndDate + toleranceInMillis;
-		    inQuery.put(TRIP_TABLE_COLS.start_date.name(), new BasicDBObject("$gte", startMin).append("$lte", startMax));
-		    inQuery.put(TRIP_TABLE_COLS.end_date.name(), new BasicDBObject("$gte", endMin).append("$lte", endMax));
-		    inQuery.put(TRIP_TABLE_COLS._id.name(), new BasicDBObject("$ne", new ObjectId(id)));
+		    BasicDBList andClauses = new BasicDBList();
+		    andClauses.add(new BasicDBObject(TRIP_TABLE_COLS.dest_city.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_city.name())));
+		    andClauses.add(new BasicDBObject(TRIP_TABLE_COLS.dest_state.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_state.name())));
+		    andClauses.add(new BasicDBObject(TRIP_TABLE_COLS.dest_country.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_country.name())));
+		    andClauses.add(new BasicDBObject(TRIP_TABLE_COLS._id.name(), new BasicDBObject("$ne", new ObjectId(id))));
 		    switch(isGroup) {
 		    	case individual:
-		    		inQuery.put(TRIP_TABLE_COLS.is_individual.name(), true);
+		    		andClauses.add(new BasicDBObject(TRIP_TABLE_COLS.is_individual.name(), true));
 		    		break;
 		    	case group:
-		    		inQuery.put(TRIP_TABLE_COLS.is_individual.name(), false);
+		    		andClauses.add(new BasicDBObject(TRIP_TABLE_COLS.is_individual.name(), false));
 		    		break;
 		    	case all:
 		    	default:
 		    		break;
 		    }
-		    System.out.println("Query Formed:" + inQuery);
+		    long tripStartDate = (Long)tripDbObject.get(TRIP_TABLE_COLS.start_date.name());
+		    long tripEndDate = (Long)tripDbObject.get(TRIP_TABLE_COLS.end_date.name());
+		    long startMin = tripStartDate - toleranceInMillis;
+//		    long startMax = tripStartDate + toleranceInMillis;
+//		    long endMin = tripEndDate - toleranceInMillis;
+		    long endMax = tripEndDate + toleranceInMillis;
+	        BasicDBList orClauses = new BasicDBList();
+	        orClauses.add(new BasicDBObject(TRIP_TABLE_COLS.start_date.name(), new BasicDBObject("$gte", startMin).append("$lte", endMax)));
+	        orClauses.add(new BasicDBObject(TRIP_TABLE_COLS.end_date.name(), new BasicDBObject("$gte", startMin).append("$lte", endMax)));
+		    andClauses.add(new BasicDBObject("$or", orClauses));
+		    inQuery = new BasicDBObject("$and", andClauses);
+	        System.out.println("Query Formed:" + inQuery);
 		    DBCursor tripTblLst = tripTbl.find(inQuery);
 		    System.out.println("List found native:" + tripTblLst.count());
 		    
@@ -152,9 +153,9 @@ public class TripSearchResults extends HttpServlet {
 	private JSONArray getLocalCompany(DBObject tripDbObject, DBCollection userTbl, UserFunctions userFunc) throws JSONException {
 		JSONArray localJsonArr = new JSONArray();
 		BasicDBObject inQuery = new BasicDBObject();
-	    inQuery.put(USER_TABLE_COLS.home_city.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_city.name()));
-	    inQuery.put(USER_TABLE_COLS.home_state.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_state.name()));
-	    inQuery.put(USER_TABLE_COLS.home_country.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.origin_country.name()));
+	    inQuery.put(USER_TABLE_COLS.home_city.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_city.name()));
+	    inQuery.put(USER_TABLE_COLS.home_state.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_state.name()));
+	    inQuery.put(USER_TABLE_COLS.home_country.name(), (String)tripDbObject.get(TRIP_TABLE_COLS.dest_country.name()));
 	    DBCursor userTblLst = userTbl.find(inQuery);
 	    while(userTblLst.hasNext()) {
 	    	localJsonArr.put(userFunc.createUserJson(userTblLst.next()));

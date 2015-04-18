@@ -1,11 +1,11 @@
 package com.trotter.server.servlet.functions;
 
-import java.util.Calendar;
-
 import org.bson.types.ObjectId;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.trotter.common.Const;
@@ -52,5 +52,26 @@ public class TripFunctions {
 		}
 		jsonTripObj.put(MongoDBStructure.USER_TBL, userTbl);
 		return jsonTripObj;
+	}
+
+	public JSONArray fetchUserListForTrip(DB mongoDB, DBObject dbObject) throws JSONException {
+		JSONArray userList = new JSONArray();
+		UserFunctions userFunctions = new UserFunctions();
+		userList.put(userFunctions.fetchUserById(mongoDB,
+				new ObjectId(String.valueOf(dbObject.get(MongoDBStructure.TRIP_TABLE_COLS.user_id.name())))));
+    	if (!Boolean.parseBoolean(String.valueOf(dbObject.get(MongoDBStructure.TRIP_TABLE_COLS.is_individual.name())))) {
+    		// fetch group member list
+	    	BasicDBList groupMembers = (BasicDBList) dbObject.get(MongoDBStructure.TRIP_TABLE_COLS.group_members.name());
+	    	if (groupMembers != null && groupMembers.size() > 0) {
+	    		//Add user objects for group members
+		    	for (int i = 0 ; i < groupMembers.size() ; i++) {
+		    		if (groupMembers.get(i) == null || groupMembers.get(i).toString().equals(""))
+		    			continue;
+		    		JSONObject userObj = userFunctions.fetchUserById(mongoDB, new ObjectId(((String)groupMembers.get(i))));
+		    		userList.put(userObj);
+		    	}
+	    	}
+    	}
+    	return userList;
 	}
 }

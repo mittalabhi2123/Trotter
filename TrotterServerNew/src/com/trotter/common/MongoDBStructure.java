@@ -33,7 +33,7 @@ public class MongoDBStructure {
 	}
 	
 	public static enum SOCIAL_TABLE_COLS {
-		_id, user_id, caption, pic, mission, city, state, country, upload_date, event, liked_by_users;
+		_id, user_id, caption, pic, mission, city, state, country, upload_date, event, liked_by_users, comments;
 	}
 	
 	public static enum USER_SOCIAL_TABLE_COLS {

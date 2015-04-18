@@ -38,7 +38,7 @@ public class RegisterUserServlet extends HttpServlet {
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
-			
+			Utility.trackViaGoogleAnalytics("Register User", "New User Registers");
 			BasicDBObject inQuery = new BasicDBObject();
 			inQuery.put(MongoDBStructure.USER_TABLE_COLS.fb_id.name(), requestObj.getString(MongoDBStructure.USER_TABLE_COLS.fb_id.name()));
 			DBObject dbObject = userTbl.findOne(inQuery);

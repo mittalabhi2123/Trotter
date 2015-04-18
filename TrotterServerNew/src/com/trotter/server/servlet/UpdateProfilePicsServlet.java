@@ -45,6 +45,7 @@ public class UpdateProfilePicsServlet extends HttpServlet {
 			System.out.println("state"+state);
 			System.out.println("country-"+country);
 			System.out.println("gcmRegId-"+gcm);
+			Utility.trackViaGoogleAnalytics("Update Profile", "User Login");
 			travelBio = Utility.isNullEmpty(travelBio) ? "" : travelBio;
 			city = Utility.isNullEmpty(city) ? "" : city;
 			state = Utility.isNullEmpty(state) ? "" : state;

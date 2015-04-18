@@ -30,6 +30,7 @@ public class AcceptTripServlet extends HttpServlet {
     }
 
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Utility.trackViaGoogleAnalytics("Accept Trips", "Right swiped");
 		try {
 			if (Utility.isNullEmpty(request.getParameter(rejectRequestParam.tripId.name()))) {
 				System.out.println("Empty trip_id request found...:(");

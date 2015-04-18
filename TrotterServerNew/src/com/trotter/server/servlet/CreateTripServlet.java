@@ -47,6 +47,7 @@ public class CreateTripServlet extends HttpServlet {
 		    	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		    	return;
 			}
+			Utility.trackViaGoogleAnalytics("Create Trips", (isNewTrip?"New Trip":"Update Trip"));
 			long duration = requestObj.getLong(MongoDBStructure.TRIP_TABLE_COLS.end_date.name())
 					- requestObj.getLong(MongoDBStructure.TRIP_TABLE_COLS.start_date.name());
 			requestObj.put(MongoDBStructure.TRIP_TABLE_COLS.duration.name(), duration);
@@ -60,7 +61,6 @@ public class CreateTripServlet extends HttpServlet {
 			String[] groupMembersFbIds = requestObj.has(MongoDBStructure.TRIP_TABLE_COLS.group_members.name())
 					? requestObj.getString(MongoDBStructure.TRIP_TABLE_COLS.group_members.name()).split(",") : null;
 			JSONArray groupUserArray = new UserFunctions().fetchUserByFbIdList(mongoDB, groupMembersFbIds);
-			
 			List<String> groupMembersList = new ArrayList<>();
 			if (groupUserArray != null) {
 				for(int i = 0 ; i < groupUserArray.length() ; i++) {

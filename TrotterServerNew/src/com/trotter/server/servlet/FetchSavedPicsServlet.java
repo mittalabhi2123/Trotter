@@ -20,7 +20,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.trotter.common.Const;
 import com.trotter.common.ManageConnection;
 import com.trotter.common.MongoDBStructure;
@@ -44,7 +43,6 @@ public class FetchSavedPicsServlet extends HttpServlet {
 			String userId = request.getParameter(Const.SaveLikePicsRequestParam.userId.name());
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
-			DBCollection userTblCol = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			JSONObject userObj = new UserFunctions().fetchUserById(mongoDB, new ObjectId(userId));
 			List<JSONObject> savedPostsList = new ArrayList<>();
 			if (userObj.has(MongoDBStructure.USER_TABLE_COLS.saved_pics.name())){

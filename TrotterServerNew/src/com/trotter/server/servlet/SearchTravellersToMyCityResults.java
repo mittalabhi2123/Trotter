@@ -63,7 +63,6 @@ public class SearchTravellersToMyCityResults extends HttpServlet {
 			UserFunctions userFunc = new UserFunctions();
 			DB mongoDB = ManageConnection.getDBConnection();
 			JSONObject userJsonObj = userFunc.fetchUserById(mongoDB, new ObjectId(id));
-			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			DBCollection tripTbl = mongoDB.getCollection(MongoDBStructure.TRIP_TBL);
 			BasicDBObject inQuery = new BasicDBObject();
 		    if (userJsonObj == null) {
@@ -73,11 +72,13 @@ public class SearchTravellersToMyCityResults extends HttpServlet {
 		    	return;
 		    }
 			inQuery = new BasicDBObject();
-		    inQuery.put(TRIP_TABLE_COLS.origin_city.name(), userJsonObj.getString(USER_TABLE_COLS.home_city.name()));
-		    inQuery.put(TRIP_TABLE_COLS.origin_state.name(), userJsonObj.getString(USER_TABLE_COLS.home_state.name()));
-		    inQuery.put(TRIP_TABLE_COLS.origin_country.name(), userJsonObj.getString(USER_TABLE_COLS.home_country.name()));
+		    inQuery.put(TRIP_TABLE_COLS.dest_city.name(), userJsonObj.getString(USER_TABLE_COLS.home_city.name()));
+		    inQuery.put(TRIP_TABLE_COLS.dest_state.name(), userJsonObj.getString(USER_TABLE_COLS.home_state.name()));
+		    inQuery.put(TRIP_TABLE_COLS.dest_country.name(), userJsonObj.getString(USER_TABLE_COLS.home_country.name()));
 		    inQuery.put(TRIP_TABLE_COLS.start_date.name(), new BasicDBObject("$gt", (System.currentTimeMillis())));
+		    inQuery.put(TRIP_TABLE_COLS.user_id.name(), new BasicDBObject("$ne", id));
 		    DBCursor tripTblLst = tripTbl.find(inQuery);
+		    System.out.println("Query Formed:" + inQuery);
 		    List<JSONObject> cotravellerList = new ArrayList<>();
 		    TripFunctions tripFunc = new TripFunctions();
 		    JSONObject tripObj = null;

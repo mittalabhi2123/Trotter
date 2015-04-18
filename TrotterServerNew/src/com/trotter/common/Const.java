@@ -44,6 +44,10 @@ public class Const {
     	userId, socialId;
     }
     
+    public static enum SaveSocialCommentRequestParam {
+    	userId, socialId, comment;
+    }
+    
     public static enum SendMessageRequestparams {
     	senderTripId, targetTripId, messageId, message, senderName;
     }
