@@ -48,6 +48,36 @@ public class SocialFunctions {
 		return dbCursorList;
 	}
 
+	public List<DBCursor> getFollowingPosts(DB mongoDB, boolean isFollowingCall, String userId, String followRequestParam) throws JSONException {
+		if (Utility.isNullEmpty(followRequestParam)){
+			return new ArrayList<>();
+		}
+		UserFunctions userFunc = new UserFunctions();
+		JSONObject userObj = userFunc.fetchUserById(mongoDB, new ObjectId(userId));
+		String associatedUserStr = "";
+		String colName = isFollowingCall ? MongoDBStructure.USER_TABLE_COLS.following.name()
+				: MongoDBStructure.USER_TABLE_COLS.follower.name();
+		if (userObj.has(colName))
+			associatedUserStr = userObj.getString(colName);
+		System.out.println("Following user id list:" + associatedUserStr);
+		if (Utility.isNullEmpty(associatedUserStr)) {
+			System.out.println("User doesn't follow any other user.");
+			return new ArrayList<>();
+		}
+		List<DBCursor> dbCursorList = new ArrayList<>();
+		for (String followingUser : associatedUserStr.split(",")) {
+			DBCollection userSocialTbl = mongoDB.getCollection(followingUser + "_" + MongoDBStructure.SOCIAL_TBL);
+			if (userSocialTbl == null) {
+				continue;
+			}
+			//TODO implement pagination
+			DBCursor dbCursor = userSocialTbl.find();
+			if (dbCursor != null)
+				dbCursorList.add(dbCursor);
+		}
+		return dbCursorList;
+	}
+
 	public JSONObject fetchById(DB mongoDB, ObjectId id) throws JSONException {
 		DBCollection socialTbl = mongoDB.getCollection(MongoDBStructure.SOCIAL_TBL);
 		if (socialTbl == null) {

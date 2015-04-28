@@ -41,6 +41,7 @@ public class FetchSavedPicsServlet extends HttpServlet {
 				return;
 			}
 			String userId = request.getParameter(Const.SaveLikePicsRequestParam.userId.name());
+			System.out.println("Fetch Saved Pics for user:" + userId);
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			JSONObject userObj = new UserFunctions().fetchUserById(mongoDB, new ObjectId(userId));

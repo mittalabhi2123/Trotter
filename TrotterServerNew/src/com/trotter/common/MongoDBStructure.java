@@ -15,7 +15,8 @@ public class MongoDBStructure {
 	
 	public static enum USER_TABLE_COLS {
 		_id, fb_id, fb_access_token, email, registration_date, first_name, last_name, dob, auth_token,
-		home_city, home_state, home_country, gender, travel_bio, pictures, own_trips, matched_trips, saved_pics, gcm_reg_id;
+		home_city, home_state, home_country, gender, travel_bio, pictures, own_trips, matched_trips, saved_pics, gcm_reg_id,
+		follower, following;
 	}
 	
 	public static enum TRIP_TABLE_COLS {

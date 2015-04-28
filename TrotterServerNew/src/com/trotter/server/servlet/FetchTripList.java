@@ -80,6 +80,8 @@ public class FetchTripList extends HttpServlet {
 	    		DBObject tripObj = tripTbl.findOne(inTripQuery);
 	    		if (tripObj != null) {
 	    			jsonTripObj = tripFunc.createTripJsonObj(tripObj, userFunc, mongoDB);
+	    			if (jsonTripObj.getLong(MongoDBStructure.TRIP_TABLE_COLS.end_date.name()) < System.currentTimeMillis())
+	    				continue;
 	    			jsonTripObj.put("own", true);
 	    			tripList.add(jsonTripObj);
 	    		}

@@ -33,7 +33,7 @@ public class Const {
     }
     
     public static enum fetchSocialRequestParam {
-    	friendId, mission, city, state, country, eventId;
+    	friendId, mission, city, state, country, eventId, following, userId, follower;
     }
     
     public static enum selfTimelineRequestParam {
@@ -42,6 +42,10 @@ public class Const {
     
     public static enum SaveLikePicsRequestParam {
     	userId, socialId;
+    }
+    
+    public static enum FollowUserRequestParam {
+    	userId, followingUserId;
     }
     
     public static enum SaveSocialCommentRequestParam {
