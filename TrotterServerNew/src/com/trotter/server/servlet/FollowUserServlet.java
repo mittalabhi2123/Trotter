@@ -36,12 +36,14 @@ public class FollowUserServlet extends HttpServlet {
 			}
 			String followingUserId = request.getParameter(Const.FollowUserRequestParam.followingUserId.name());
 			String userId = request.getParameter(Const.FollowUserRequestParam.userId.name());
-			System.out.println("Like Pic Servlet---SocialId:"+followingUserId+", userId:"+userId);
+			System.out.println("follow user Servlet---follow:"+followingUserId+", userId:"+userId);
 			//TODO validations
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			JSONObject userTblObj = new UserFunctions().fetchUserById(mongoDB, new ObjectId(userId));
-			String following = userTblObj.getString(MongoDBStructure.USER_TABLE_COLS.following.name());
+			String following = "";
+					if (userTblObj.has(MongoDBStructure.USER_TABLE_COLS.following.name()))
+						following = userTblObj.getString(MongoDBStructure.USER_TABLE_COLS.following.name());
 			if (Utility.isNullEmpty(following)) {
 				following = followingUserId;
 			} else {
@@ -53,7 +55,9 @@ public class FollowUserServlet extends HttpServlet {
 			userTbl.update(condDoc, setObj);
 
 			userTblObj = new UserFunctions().fetchUserById(mongoDB, new ObjectId(followingUserId));
-			String follower = userTblObj.getString(MongoDBStructure.USER_TABLE_COLS.follower.name());
+			String follower = "";
+			if (userTblObj.has(MongoDBStructure.USER_TABLE_COLS.follower.name()))
+				follower = userTblObj.getString(MongoDBStructure.USER_TABLE_COLS.follower.name());
 			if (Utility.isNullEmpty(follower)) {
 				follower = userId;
 			} else {

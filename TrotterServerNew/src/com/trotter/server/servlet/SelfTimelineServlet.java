@@ -44,11 +44,11 @@ public class SelfTimelineServlet extends HttpServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
 			String userId = request.getParameter(selfTimelineRequestParam.userId.name());
-			String mission = request.getParameter(selfTimelineRequestParam.mission.name());
-			String city = request.getParameter(selfTimelineRequestParam.city.name());
-			String state = request.getParameter(selfTimelineRequestParam.state.name());
-			String country = request.getParameter(selfTimelineRequestParam.country.name());
-			String eventId = request.getParameter(selfTimelineRequestParam.eventId.name());
+//			String mission = request.getParameter(selfTimelineRequestParam.mission.name());
+//			String city = request.getParameter(selfTimelineRequestParam.city.name());
+//			String state = request.getParameter(selfTimelineRequestParam.state.name());
+//			String country = request.getParameter(selfTimelineRequestParam.country.name());
+//			String eventId = request.getParameter(selfTimelineRequestParam.eventId.name());
 			if (Utility.isNullEmpty(userId)) {
 				System.out.println("Empty request found...:(");
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid/No request received");
@@ -56,9 +56,9 @@ public class SelfTimelineServlet extends HttpServlet {
 			}
 			System.out.println("Self Timeline.");
 			System.out.println(userId);
-			System.out.println(mission);
-			System.out.println(city + "-" + state + "-" + country);
-			System.out.println(eventId);
+//			System.out.println(mission);
+//			System.out.println(city + "-" + state + "-" + country);
+//			System.out.println(eventId);
 			DB mongoDB = ManageConnection.getDBConnection();
 			SocialFunctions socialFunc = new SocialFunctions();
 			DBCursor selfPosts = socialFunc.getUserPosts(mongoDB, userId);
@@ -67,31 +67,31 @@ public class SelfTimelineServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_NO_CONTENT, "No data found...");
 				return;
 			}
-			List<DBCursor> missionPostList = socialFunc.getMissionPosts(mongoDB, mission);
-			
+//			List<DBCursor> missionPostList = socialFunc.getMissionPosts(mongoDB, mission);
+//			
 			DBCollection socialTbl = mongoDB.getCollection(MongoDBStructure.SOCIAL_TBL);
-			BasicDBObject doc = new BasicDBObject();
-			if (!Utility.isNullEmpty(city))
-				doc.append(SOCIAL_TABLE_COLS.city.name(), city);
-			if (!Utility.isNullEmpty(state))
-				doc.append(SOCIAL_TABLE_COLS.state.name(), state);
-			if (!Utility.isNullEmpty(country))
-				doc.append(SOCIAL_TABLE_COLS.country.name(), country);
-			if (!Utility.isNullEmpty(eventId))
-				doc.append(SOCIAL_TABLE_COLS.event.name(), eventId);
-			DBCursor socialCursor = null;
-			if (doc.size() > 0) {
-				socialCursor = socialTbl.find(doc);
-			}
+//			BasicDBObject doc = new BasicDBObject();
+//			if (!Utility.isNullEmpty(city))
+//				doc.append(SOCIAL_TABLE_COLS.city.name(), city);
+//			if (!Utility.isNullEmpty(state))
+//				doc.append(SOCIAL_TABLE_COLS.state.name(), state);
+//			if (!Utility.isNullEmpty(country))
+//				doc.append(SOCIAL_TABLE_COLS.country.name(), country);
+//			if (!Utility.isNullEmpty(eventId))
+//				doc.append(SOCIAL_TABLE_COLS.event.name(), eventId);
+//			DBCursor socialCursor = null;
+//			if (doc.size() > 0) {
+//				socialCursor = socialTbl.find(doc);
+//			}
 			Map<String, JSONObject> socialMap = new HashMap<>();
-			if (socialCursor != null) {
-				while (socialCursor.hasNext()) {
-					DBObject socialObj = socialCursor.next();
-					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
-					socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-				}
-				
-			}
+//			if (socialCursor != null) {
+//				while (socialCursor.hasNext()) {
+//					DBObject socialObj = socialCursor.next();
+//					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
+//					socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
+//				}
+//				
+//			}
 			while (selfPosts.hasNext()) {
 				DBObject userSocialObj = selfPosts.next();
 				String socialId = String.valueOf(userSocialObj.get(USER_SOCIAL_TABLE_COLS.social_id.name()));
@@ -102,22 +102,26 @@ public class SelfTimelineServlet extends HttpServlet {
 				JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
 				socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
 			}
-			for (DBCursor missionCursor : missionPostList) {
-				while (missionCursor.hasNext()) {
-					DBObject missionSocialObj = missionCursor.next();
-					String socialId = String.valueOf(missionSocialObj.get(MISSION_SOCIAL_TABLE_COLS.social_id.name()));
-					if (socialMap.containsKey(socialId))
-						continue;
-					BasicDBObject dbObject = new BasicDBObject().append(SOCIAL_TABLE_COLS._id.name(), new ObjectId(socialId));
-					DBObject socialObj = socialTbl.findOne(dbObject);
-					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
-					socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
-				}
-			}
+//			for (DBCursor missionCursor : missionPostList) {
+//				while (missionCursor.hasNext()) {
+//					DBObject missionSocialObj = missionCursor.next();
+//					String socialId = String.valueOf(missionSocialObj.get(MISSION_SOCIAL_TABLE_COLS.social_id.name()));
+//					if (socialMap.containsKey(socialId))
+//						continue;
+//					BasicDBObject dbObject = new BasicDBObject().append(SOCIAL_TABLE_COLS._id.name(), new ObjectId(socialId));
+//					DBObject socialObj = socialTbl.findOne(dbObject);
+//					JSONObject jsonObj = socialFunc.convert2Json(mongoDB, socialObj);
+//					socialMap.put(jsonObj.getString(SOCIAL_TABLE_COLS._id.name()), jsonObj);
+//				}
+//			}
 			List<JSONObject> socialList = new ArrayList<>();
 			for (JSONObject obj : socialMap.values()) {
 				String countryText = obj.getString(MongoDBStructure.SOCIAL_TABLE_COLS.country.name());
-				if (!Utility.isNullEmpty(countryText))
+				String stateText = obj.getString(MongoDBStructure.SOCIAL_TABLE_COLS.state.name());
+				String cityText = obj.getString(MongoDBStructure.SOCIAL_TABLE_COLS.city.name());
+				if (!Utility.isNullEmpty(countryText)
+						|| !Utility.isNullEmpty(stateText)
+						|| !Utility.isNullEmpty(cityText))
 					socialList.add(obj);// send only checked-in posts, ie, where location is mentioned.
 			}
 			Collections.sort(socialList, new Comparator<JSONObject>() {

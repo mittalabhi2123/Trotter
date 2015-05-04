@@ -79,6 +79,10 @@ public class SocialFunctions {
 	}
 
 	public JSONObject fetchById(DB mongoDB, ObjectId id) throws JSONException {
+		return fetchById(mongoDB, id, false);
+	}
+
+	public JSONObject fetchById(DB mongoDB, ObjectId id, boolean addUserObj) throws JSONException {
 		DBCollection socialTbl = mongoDB.getCollection(MongoDBStructure.SOCIAL_TBL);
 		if (socialTbl == null) {
 			return null;
@@ -87,9 +91,9 @@ public class SocialFunctions {
 		BasicDBObject inQuery = new BasicDBObject();
 		inQuery.put(MongoDBStructure.SOCIAL_TABLE_COLS._id.name(), id);
 		DBObject socialObj = socialTbl.findOne(inQuery);
-		return convert2Json(mongoDB, socialObj, false);
+		return convert2Json(mongoDB, socialObj, addUserObj);
 	}
-
+	
 	public DBCursor getUserPosts(DB mongoDB, String userId) throws JSONException {
 		UserFunctions userFunc = new UserFunctions();
 		JSONObject jsonObj = userFunc.fetchUserById(mongoDB, new ObjectId(userId));
@@ -98,8 +102,7 @@ public class SocialFunctions {
 			//response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid friend facebook id provided.");
 			return null;
 		}
-		DBCollection userSocialTbl = mongoDB.getCollection(jsonObj.getString(
-				USER_TABLE_COLS._id.name()) + "_" + MongoDBStructure.SOCIAL_TBL);
+		DBCollection userSocialTbl = mongoDB.getCollection(userId + "_" + MongoDBStructure.SOCIAL_TBL);
 		if (userSocialTbl == null) {
 			return null;
 		}

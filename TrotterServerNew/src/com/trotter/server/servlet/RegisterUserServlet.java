@@ -39,8 +39,9 @@ public class RegisterUserServlet extends HttpServlet {
 			DB mongoDB = ManageConnection.getDBConnection();
 			DBCollection userTbl = mongoDB.getCollection(MongoDBStructure.USER_TBL);
 			Utility.trackViaGoogleAnalytics("Register User", "New User Registers");
+			String fbId = requestObj.getString(MongoDBStructure.USER_TABLE_COLS.fb_id.name());
 			BasicDBObject inQuery = new BasicDBObject();
-			inQuery.put(MongoDBStructure.USER_TABLE_COLS.fb_id.name(), requestObj.getString(MongoDBStructure.USER_TABLE_COLS.fb_id.name()));
+			inQuery.put(MongoDBStructure.USER_TABLE_COLS.fb_id.name(), fbId);
 			DBObject dbObject = userTbl.findOne(inQuery);
 		    if (dbObject != null) {
 		    	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -50,6 +51,10 @@ public class RegisterUserServlet extends HttpServlet {
 		    	responseObj.put("id", dbObject.get(MongoDBStructure.USER_TABLE_COLS._id.name()));
 			    response.getWriter().write(responseObj.toString());
 			    System.out.println("ID::" + dbObject.get(MongoDBStructure.USER_TABLE_COLS._id.name()));
+				BasicDBObject condDoc = new BasicDBObject(MongoDBStructure.USER_TABLE_COLS.fb_id.name(), fbId);
+				BasicDBObject setObj = new BasicDBObject().append(Utility.MongoQueryHandles.$set.name(), 
+						new BasicDBObject().append(MongoDBStructure.USER_TABLE_COLS.dob.name(), requestObj.get(MongoDBStructure.USER_TABLE_COLS.dob.name())));
+				userTbl.update(condDoc, setObj);
 			    return;
 		    }
 		    
@@ -58,6 +63,7 @@ public class RegisterUserServlet extends HttpServlet {
 				if (requestObj.has(col.name()))
 					doc.append(col.name(), requestObj.get(col.name()));
 			}
+			doc.append(MongoDBStructure.USER_TABLE_COLS.registration_date.name(), System.currentTimeMillis());
 			userTbl.insert(doc);
 			JSONObject responseObj = new JSONObject();
 	    	responseObj.put("id", doc.get(MongoDBStructure.USER_TABLE_COLS._id.name()));

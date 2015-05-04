@@ -31,6 +31,7 @@ public class UploadSocialPicServlet extends HttpServlet {
 		try {
 			if (Utility.isNullEmpty(request.getParameter("pics"))) {
 				System.out.println("Empty request found...:( Pics missing");
+				
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid/No request received");
 				return;
 			}
